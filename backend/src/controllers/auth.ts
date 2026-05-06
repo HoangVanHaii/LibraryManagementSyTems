@@ -1,77 +1,50 @@
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import sql from 'mssql';
-import { accountPool } from '../configs/db';
+import { authenticateUser } from '../services/auth';
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response): Promise<any> => {
     const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ message: 'Vui lòng cung cấp đầy đủ tên đăng nhập và mật khẩu.' });
+    }
 
     try {
-        const result = await accountPool.request()
-            .input('username', sql.VarChar, username)
-            .query('SELECT TenDangNhap, MatKhauHash, MaNV, MaDG, TrangThai FROM TAI_KHOAN WHERE TenDangNhap = @username');
+        const clientIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP') as string;
 
-        const user = result.recordset[0];
+        const userInfo = await authenticateUser(username, password, clientIp);
 
-        if (!user || user.TrangThai === false) {
+        if (!userInfo) {
             return res.status(401).json({ message: 'Thông tin đăng nhập không chính xác!' });
         }
 
-        // 4. So sánh mật khẩu thô với mã Hash trong DB bằng Bcrypt
-        // Bcrypt sẽ tự động xử lý Salt đã được nhúng trong chuỗi MatKhauHash
-        const isMatch = await bcrypt.compare(password, user.MatKhauHash);
+        const tokenPayload = {
+            username: userInfo.username,
+            maId: userInfo.maId,
+            role: userInfo.role,
+            permissions: userInfo.permissions
+        };
 
-        if (!isMatch) {
-            // Ghi log đăng nhập thất bại vào bảng Audit của DB Account
-            await recordLoginLog(username, 'Thất bại - Sai mật khẩu', req.ip);
-            return res.status(401).json({ message: 'Thông tin đăng nhập không chính xác!' });
-        }
-
-        // 5. Ghi log đăng nhập thành công
-        await recordLoginLog(username, 'Thành công', req.ip);
-
-        // 6. Tạo JWT chứa các ID liên kết (MaNV/MaDG) để phục vụ RLS sau này[cite: 1]
         const token = jwt.sign(
-            {
-                username: user.TenDangNhap,
-                maId: user.MaNV || user.MaDG,
-                role: user.MaNV ? 'NHAN_VIEN' : 'DOC_GIA'
-            },
-            process.env.JWT_SECRET || 'your_secret_key',
+            tokenPayload,
+            process.env.JWT_SECRET || 'THUVIEN_SECRET_KEY_2026',
             { expiresIn: '1h' }
         );
+
         const refreshToken = jwt.sign(
-            {
-                username: user.TenDangNhap,
-                maId: user.MaNV || user.MaDG,
-                role: user.MaNV ? 'NHAN_VIEN' : 'DOC_GIA'
-            },
-            process.env.JWT_SECRET || 'your_secret_key',
+            tokenPayload,
+            process.env.JWT_REFRESH_SECRET || 'THUVIEN_REFRESH_SECRET_KEY_2026',
             { expiresIn: '7d' }
         );
 
-        res.json({
+        return res.status(200).json({
             message: 'Đăng nhập thành công',
             token,
             refreshToken,
-            user: {
-                username: user.TenDangNhap,
-                role: user.MaNV ? 'NHAN_VIEN' : 'DOC_GIA'
-            }
+            user: userInfo
         });
 
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Lỗi hệ thống!' });
+        console.error('Lỗi hệ thống tại API Login:', err);
+        return res.status(500).json({ message: 'Lỗi hệ thống nội bộ!' });
     }
 };
-
-// Hàm phụ   ghi log Audit đăng nhập[cite: 1]
-async function recordLoginLog(username: string, status: string, ip: any) {
-    await accountPool.request()
-        .input('user', sql.VarChar, username)
-        .input('ip', sql.VarChar, ip)
-        .input('status', sql.NVarChar, status)
-        .query('INSERT INTO LICH_SU_DANG_NHAP (TenDangNhap, IP_Address, TrangThai) VALUES (@user, @ip, @status)');
-}
