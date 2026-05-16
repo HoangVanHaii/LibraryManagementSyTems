@@ -1,8 +1,8 @@
-import { Router } from 'express';
-import { getPublicBooks } from '../controllers/book';
+// import { Router } from 'express';
+// import { getPublicBooks } from '../controllers/book';
 
-const router = Router();
+// const router = Router();
 
-router.get('/public', getPublicBooks);
+// router.get('/public', getPublicBooks);
 
-export default router;
+// export default router;

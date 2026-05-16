@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDatabases } from './configs/db';
 import authRouter from './router/auth';
-import bookRouter from './router/book';
+// import bookRouter from './router/book';
 
 dotenv.config();
 
@@ -18,7 +18,7 @@ connectDatabases().then(() => {
 app.use(cors());
 app.use(express.json());
 app.use('/api/auth', authRouter);
-app.use('/api/book', bookRouter);
+// app.use('/api/book', bookRouter);
 app.get('/', (req, res) => {
     res.send('🚀 Backend đang chạy!');
     });
