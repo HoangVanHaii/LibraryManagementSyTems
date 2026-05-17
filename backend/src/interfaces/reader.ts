@@ -9,3 +9,25 @@ export interface IReaderProfile {
     NgayHetHan: Date;
     CongNo: number;
 }
+export interface IReader {
+    maDG: string;
+    hoTen: string;
+    ngaySinh: Date | string;
+    cccd: Buffer | string; 
+    sdt: string;
+    email: string;
+    ngayLapThe: Date | string;
+    ngayHetHan: Date | string;
+    congNo: number;
+    maNVLap: string | null;
+}
+
+export interface CreateReaderDTO {
+    maDG: string;
+    hoTen: string;
+    ngaySinh: string; 
+    cccd: string;     
+    sdt: string;
+    email: string;
+    password: string; 
+}

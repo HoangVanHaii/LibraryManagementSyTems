@@ -2,11 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import * as borrowService from '../services/reader';
 import * as readerService from '../services/reader';
 import { AppError } from '../utils/appError';
+import { CreateReaderDTO } from '../interfaces/reader';
+import { CreateBorrowDTO } from '../interfaces/borrow';
 
-/**
- * API Controller xử lý lấy lịch sử mượn sách của riêng tôi
- * Endpoint: GET /api/reader/history
- */
 export const getReaderHistory = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
         // Giả định qua lớp Middleware xác thực (verifyToken), thông tin Token đã được giải mã 
@@ -22,11 +20,50 @@ export const getReaderHistory = async (req: Request, res: Response, next: NextFu
 
         // Phản hồi dữ liệu dạng JSON về cho màn hình ReaderView (Reader.vue) render giao diện
         return res.status(200).json(historyData);
-
     } catch (error) {
         next(error);
     }
 };
+
+
+export const createReaderAccount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const readerData: CreateReaderDTO = req.body;
+        const maNVLap = (req as any).user?.id;
+        const currentRole = req.user!.role;
+
+        await readerService.createReaderService(readerData, maNVLap as string, currentRole);
+
+        res.status(201).json({
+            success: true,
+            message: 'Đã tạo thẻ và cấp tài khoản Độc giả thành công!'
+        });
+
+    } catch (error: any) {
+        next(error);
+    }
+};
+
+export const renewReaderCard = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const { maDG, soThangGiaHan } = req.body;
+        const role = req.user!.role;
+
+        if (!maDG || !soThangGiaHan) {
+            return next(new AppError('Vui lòng nhập đầy đủ mã Độc giả và số tháng cần gia hạn!', 400));
+        }
+
+        await readerService.renewReaderCardService(maDG, Number(soThangGiaHan), role);
+
+        res.status(200).json({
+            success: true,
+            message: `Gia hạn thẻ cho độc giả ${maDG} thêm ${soThangGiaHan} tháng thành công.`
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 
 export const getReaderStats = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
