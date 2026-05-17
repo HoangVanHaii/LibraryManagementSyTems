@@ -6,7 +6,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
         if (!err.isOperational) {
             console.error("SYSTEM ERROR:", err);
         }
-        return res.status(err.stautusCode).json({
+        return res.status(err.statusCode).json({
             success: false,
             message: err.isOperational ? err.message : "Lỗi hệ thống không xác định. Vui lòng thử lại sau!"
         });
