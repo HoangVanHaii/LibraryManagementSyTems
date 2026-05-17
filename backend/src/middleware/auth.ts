@@ -25,3 +25,21 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         next(error);
     }
 };
+
+
+export const checkRole = (allowedRoles: string[]) => {
+    return (req: Request, res: Response, next: NextFunction): void => {
+        
+        if (!req.user || !req.user.role) {
+            return next(new AppError('Bạn chưa đăng nhập hoặc phiên làm việc không hợp lệ!', 401));
+        }
+
+        const currentUserRole = req.user.role;
+
+        if (!allowedRoles.includes(currentUserRole)) {
+            return next(new AppError('Truy cập bị từ chối! Bạn không có quyền thực hiện hành động này.', 403));
+        }
+
+        next();
+    };
+};
