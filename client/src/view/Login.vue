@@ -33,6 +33,15 @@
         <p class="text-slate-500 mt-2 font-medium">Nhập tài khoản để truy cập không gian làm việc.</p>
       </div>
 
+      <div v-if="errorMessage" class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl transition-all">
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          <p class="text-sm font-semibold text-red-700 leading-tight">{{ errorMessage }}</p>
+        </div>
+      </div>
+
       <form @submit.prevent="handleLogin" class="space-y-5">
         <div class="space-y-2">
           <label class="text-sm font-bold text-slate-700 uppercase tracking-wide">Tài khoản</label>
@@ -40,8 +49,9 @@
             v-model="username"
             type="text" 
             required 
+            :disabled="isLoading"
             placeholder="Nhập mã nhân viên hoặc độc giả" 
-            class="w-full p-4 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+            class="w-full p-4 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none disabled:opacity-60"
           >
         </div>
 
@@ -53,25 +63,39 @@
             v-model="password"
             type="password" 
             required 
+            :disabled="isLoading"
             placeholder="••••••••" 
-            class="w-full p-4 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
+            class="w-full p-4 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none disabled:opacity-60"
           >
         </div>
 
-        <button type="submit" class="w-full bg-slate-900 text-white p-4 rounded-xl font-bold hover:bg-black transition-all shadow-lg shadow-slate-200 flex justify-center items-center group">
-          Vào hệ thống
-          <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+        <button 
+          type="submit" 
+          :disabled="isLoading"
+          class="w-full bg-slate-900 text-white p-4 rounded-xl font-bold hover:bg-black transition-all shadow-lg shadow-slate-200 flex justify-center items-center group disabled:bg-slate-400 disabled:cursor-not-allowed"
+        >
+          <span v-if="isLoading" class="flex items-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Đang xác thực bảo mật...
+          </span>
+          <span v-else class="flex items-center">
+            Vào hệ thống
+            <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+          </span>
         </button>
       </form>
 
       <div class="mt-12">
-        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Tài khoản Demo (Tự động điền)</p>
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Tài khoản Demo thực tế (Click để thử)</p>
         <div class="flex flex-wrap gap-2">
-          <button @click="fillData('DG2604001', 'DOC_GIA')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-colors">Độc Giả</button>
-          <button @click="fillData('TT_001', 'THU_THU')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-emerald-100 hover:text-emerald-700 transition-colors">Thủ Thư</button>
-          <button @click="fillData('KHO_01', 'QUAN_LY_KHO')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-orange-100 hover:text-orange-700 transition-colors">Kho</button>
-          <button @click="fillData('KT_001', 'KE_TOAN')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-purple-100 hover:text-purple-700 transition-colors">Kế Toán</button>
-          <button @click="fillData('AD_001', 'GIAM_DOC')" class="px-3 py-1.5 bg-slate-900 text-white text-[10px] font-bold rounded-lg hover:bg-black transition-colors">Giám Đốc</button>
+          <button @click="fillData('haidocgia')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-colors">Độc Giả (Hải)</button>
+          <button @click="fillData('thuthu_01')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-emerald-100 hover:text-emerald-700 transition-colors">Thủ Thư</button>
+          <button @click="fillData('kho_01')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-orange-100 hover:text-orange-700 transition-colors">Thủ Kho</button>
+          <button @click="fillData('ketoan_01')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-purple-100 hover:text-purple-700 transition-colors">Kế Toán</button>
+          <button @click="fillData('admin_giamdoc')" class="px-3 py-1.5 bg-slate-900 text-white text-[10px] font-bold rounded-lg hover:bg-black transition-colors">Giám Đốc</button>
         </div>
       </div>
     </div>
@@ -80,35 +104,68 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from 'axios'; // Hãy đảm bảo bạn đã cài đặt axios (`npm install axios`)
+
+const router = useRouter();
 
 const username = ref('');
 const password = ref('');
-const tempRole = ref('DOC_GIA'); // Dùng để giả lập Role sau khi đăng nhập
+const isLoading = ref(false);
+const errorMessage = ref('');
 
-// Hàm tự động điền để Hải demo nhanh
-const fillData = (user: string, role: string) => {
+// Điền tài khoản demo thật dưới cơ sở dữ liệu để test nhanh
+const fillData = (user: string) => {
   username.value = user;
-  password.value = 'password123';
-  tempRole.value = role;
+  password.value = user === 'haidocgia' || user === 'dangdocgia' ? 'NaCl123' : 'NaCl456'; // Khớp mật khẩu sinh muối salt
+  errorMessage.value = '';
 };
 
-const handleLogin = () => {
-  // Logic Redirect:
-  // 1. Lưu Role được xác định vào localStorage
-  localStorage.setItem('role', tempRole.value);
+const handleLogin = async () => {
+  isLoading.value = true;
+  errorMessage.value = '';
 
-  // 2. Chuyển hướng về trang chủ
-  // Tùy vào Role, MainLayout sẽ hiển thị menu khác nhau
-  // Và Router sẽ đá về trang con tương ứng
-  let targetPath = '/';
-  
-  if (tempRole.value === 'DOC_GIA') targetPath = '/reader/history';
-  if (tempRole.value === 'THU_THU') targetPath = '/librarian/transactions';
-  if (tempRole.value === 'QUAN_LY_KHO') targetPath = '/inventory/books';
-  if (tempRole.value === 'KE_TOAN') targetPath = '/accountant/fines';
-  if (tempRole.value === 'GIAM_DOC') targetPath = '/director/audit-log';
+  try {
+    // Gọi API Node.js Backend đã xây dựng ở turn trước
+    // Bạn thay đổi URL '/api/auth/login' cho khớp chính xác với Router của backend nhé
+    const response = await axios.post('http://localhost:3000/api/auth/login', {
+      username: username.value,
+      password: password.value
+    });
+    console.log('Phản hồi từ API đăng nhập:', response.data);
+    const { token, user } = response.data;
 
-  // Dùng window.location để reload lại app với Role mới
-  window.location.href = targetPath;
+    // LƯU TRỮ PHIÊN LÀM VIỆC AN TOÀN ĐỂ ROUTE GUARD FRONTEND ĐỌC QUYỀN (RBAC)
+    localStorage.setItem('user_session', JSON.stringify({
+      token: token,
+      role: user.role, // Trả về chuỗi: 'DocGia', 'ThuThu', 'KeToan', 'GiamDoc'...
+      username: user.username,
+      maId: user.maId
+    }));
+    alert(user.role);
+    // ĐIỀU HƯỚNG SANG PHÂN HỆ CHỨC NĂNG TƯƠNG ỨNG THEO ROLE
+    let targetPath = '/';
+    const userRole = user.role;
+
+    if (userRole === 'DocGia') targetPath = '/reader/history';
+    else if (userRole === 'ThuThu') targetPath = '/librarian/transactions';
+    else if (userRole === 'QuanLyKho' || userRole === 'Kho') targetPath = '/inventory/books';
+    else if (userRole === 'KeToan') targetPath = '/accountant/fines';
+    else if (userRole === 'GiamDoc') targetPath = '/director/audit-log';
+
+    // Điều hướng mượt mà không gây F5 reload trang trắng xoá (Chuẩn SPA)
+    router.push(targetPath);
+
+  } catch (error: any) {
+    console.log('Lỗi khi gọi API đăng nhập:',error.response);
+    // TRÍCH XUẤT THÔNG BÁO LỖI TIẾNG VIỆT TỪ THROW SQL SERVER GỬI LÊN
+    if (error.response && error.response.data && error.response.data.message) {
+      errorMessage.value = error.response.data.message;
+    } else {
+      errorMessage.value = 'Không thể kết nối đến máy chủ xác thực hệ thống.';
+    }
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>

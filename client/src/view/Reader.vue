@@ -1,12 +1,18 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 p-2">
     <div>
       <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
         Tổng quan cá nhân
       </h2>
       <p class="mt-1 text-sm text-gray-500">
-        Dữ liệu được lọc tự động bởi chính sách bảo mật Row-Level Security dưới CSDL.
+        Dữ liệu được thống kê trực tiếp từ lõi CSDL thông qua chính sách bảo mật Row-Level Security (RLS).
       </p>
+    </div>
+
+    <div v-if="errorMessage" class="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl">
+      <div class="flex">
+        <p class="text-sm font-semibold text-red-700">{{ errorMessage }}</p>
+      </div>
     </div>
 
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -20,7 +26,7 @@
             </div>
             <div class="w-0 flex-1 ml-5">
               <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">Sách đang mượn</dt>
+                <dt class="text-sm font-medium text-gray-500 truncate">Sách đang mượn (Từ DB)</dt>
                 <dd class="flex items-baseline text-2xl font-semibold text-gray-900">
                   {{ totalBorrowed }} <span class="ml-2 text-sm text-gray-500 font-medium">cuốn</span>
                 </dd>
@@ -40,7 +46,7 @@
             </div>
             <div class="w-0 flex-1 ml-5">
               <dl>
-                <dt class="text-sm font-medium text-gray-500 truncate">Tổng nợ phạt</dt>
+                <dt class="text-sm font-medium text-gray-500 truncate">Tổng nợ phạt (Từ DB)</dt>
                 <dd class="flex items-baseline text-2xl font-semibold text-gray-900">
                   {{ totalDebt.toLocaleString('vi-VN') }} <span class="ml-2 text-sm text-gray-500 font-medium">VNĐ</span>
                 </dd>
@@ -60,7 +66,16 @@
           </p>
         </div>
       </div>
-      <div class="overflow-x-auto">
+
+      <div v-if="isLoading" class="p-6 text-center text-sm text-gray-500 animate-pulse">
+        Đang đồng bộ dữ liệu giao dịch bảo mật...
+      </div>
+
+      <div v-else-if="borrowedHistory.length === 0" class="p-8 text-center text-sm text-gray-400">
+        Bạn chưa có lịch sử mượn trả sách nào tại thư viện.
+      </div>
+
+      <div v-else class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-white">
             <tr>
@@ -72,27 +87,27 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="book in borrowedHistory" :key="book.maPhieu" class="hover:bg-gray-50 transition-colors">
-              <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 whitespace-nowrap sm:pl-6">
-                {{ book.maPhieu }}
+            <tr v-for="book in borrowedHistory" :key="book.MaPhieu" class="hover:bg-gray-50 transition-colors">
+              <td class="py-4 pl-4 pr-3 text-sm font-mono font-bold text-gray-900 whitespace-nowrap sm:pl-6">
+                {{ book.MaPhieu }}
               </td>
-              <td class="px-3 py-4 text-sm text-gray-700 whitespace-nowrap">
-                {{ book.tenSach }}
+              <td class="px-3 py-4 text-sm text-gray-700 max-w-xs truncate font-semibold">
+                {{ book.TenSach }}
               </td>
               <td class="px-3 py-4 text-sm text-gray-500 whitespace-nowrap">
-                {{ book.ngayMuon }}
+                {{ formatDate(book.NgayMuon) }}
               </td>
               <td class="px-3 py-4 text-sm whitespace-nowrap">
-                <span :class="isOverdue(book.hanTra) ? 'text-red-600 font-bold' : 'text-gray-500'">
-                  {{ book.hanTra }}
+                <span :class="isOverdue(book.HanTra, book.NgayTraThucTe) ? 'text-red-600 font-bold' : 'text-gray-500'">
+                  {{ formatDate(book.HanTra) }}
                 </span>
               </td>
               <td class="px-3 py-4 text-sm whitespace-nowrap">
                 <span 
-                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                  :class="book.status === 'Đang mượn' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'"
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold"
+                  :class="!book.NgayTraThucTe ? 'bg-yellow-50 text-yellow-800 border border-yellow-200' : 'bg-green-50 text-green-800 border border-green-200'"
                 >
-                  {{ book.status }}
+                  {{ !book.NgayTraThucTe ? 'Đang mượn' : 'Đã trả' }}
                 </span>
               </td>
             </tr>
@@ -104,52 +119,77 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
 
-// 1. Định nghĩa kiểu dữ liệu (TypeScript)
 interface BorrowHistory {
-  maPhieu: string;
-  tenSach: string;
-  ngayMuon: string;
-  hanTra: string;
-  status: 'Đang mượn' | 'Đã trả';
+  MaPhieu: string;
+  NgayMuon: string;
+  HanTra: string;
+  TenSach: string;
+  NgayTraThucTe: string | null;
+  TienPhatKyNay: number;
 }
 
-// 2. Giả lập dữ liệu mượn sách (Mock Data)
-// Trong báo cáo, bạn giải thích đây là dữ liệu đã được lọc tự động từ DB trả lên.
-const borrowedHistory = ref<BorrowHistory[]>([
-  {
-    maPhieu: 'PM001',
-    tenSach: 'Clean Code: A Handbook of Agile Software Craftsmanship',
-    ngayMuon: '2026-04-01',
-    hanTra: '2026-04-15',
-    status: 'Đang mượn'
-  },
-  {
-    maPhieu: 'PM005',
-    tenSach: 'Designing Data-Intensive Applications',
-    ngayMuon: '2026-03-20',
-    hanTra: '2026-04-05',
-    status: 'Đang mượn'
-  },
-  {
-    maPhieu: 'PM012',
-    tenSach: 'Vue.js Up and Running',
-    ngayMuon: '2026-02-10',
-    hanTra: '2026-02-25',
-    status: 'Đã trả'
-  }
-]);
+const borrowedHistory = ref<BorrowHistory[]>([]);
+const totalBorrowed = ref<number>(0); // Chuyển từ computed thành biến phản chiếu kết quả từ API
+const totalDebt = ref<number>(0);     // Chuyển từ computed thành biến phản chiếu kết quả từ API
+const isLoading = ref(false);
+const errorMessage = ref('');
 
-// 3. Các biến thống kê hiển thị trên Dashboard
-const totalBorrowed = ref<number>(2);
-const totalDebt = ref<number>(150000); // 150k tiền phạt do cuốn PM005 quá hạn
-
-// 4. Logic kiểm tra sách quá hạn (để tô màu đỏ hạn trả)
-const isOverdue = (dateString: string): boolean => {
-  const dueDate = new Date(dateString);
-  // Lấy mốc thời gian tĩnh để test giao diện
-  const today = new Date('2026-04-14'); 
-  return dueDate < today;
+// Hàm trích xuất chuỗi cấu trúc Session Token dùng chung
+const getAuthHeaders = () => {
+  const sessionRaw = localStorage.getItem('user_session');
+  if (!sessionRaw) throw new Error('Hết hạn phiên làm việc. Vui lòng đăng nhập lại!');
+  const session = JSON.parse(sessionRaw);
+  return { Authorization: `Bearer ${session.token}` };
 };
+
+// 1. API LẤY LỊCH SỬ CHI TIẾT
+const loadBorrowHistory = async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/api/reader/history', { headers: getAuthHeaders() });
+    borrowedHistory.value = response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Không thể đồng bộ bảng lịch sử.');
+  }
+};
+
+// 2. API LẤY SỐ LIỆU ĐẾM THỐNG KÊ TỪ CSDL (NEW 🚀)
+const loadDashboardStats = async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/api/reader/dashboard-stats', { headers: getAuthHeaders() });
+    totalBorrowed.value = response.data.SoSachDangMuon;
+    totalDebt.value = response.data.TongTienPhat;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || 'Không thể đồng bộ số liệu Dashboard.');
+  }
+};
+
+// Luồng chạy song song kích hoạt đồng thời dữ liệu bảo mật
+const initPageData = async () => {
+  isLoading.value = true;
+  errorMessage.value = '';
+  try {
+    await Promise.all([loadBorrowHistory(), loadDashboardStats()]);
+  } catch (error: any) {
+    errorMessage.value = error.message;
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const isOverdue = (dueDateString: string, returnDateString: string | null): boolean => {
+  if (returnDateString) return false;
+  return new Date(dueDateString) < new Date();
+};
+
+const formatDate = (dateStr: string): string => {
+  if (!dateStr) return '-';
+  return new Date(dateStr).toLocaleDateString('vi-VN');
+};
+
+onMounted(() => {
+  initPageData();
+});
 </script>

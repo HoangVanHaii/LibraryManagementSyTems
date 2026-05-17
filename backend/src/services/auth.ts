@@ -1,31 +1,44 @@
-// import crypto from 'crypto';
-// import sql from 'mssql';
-// import { accountPool } from '../configs/db';
+import sql from 'mssql';
+import { authPool } from '../configs/db'; // Bạn nhớ điều chỉnh lại đường dẫn cho đúng với cấu trúc folder của mình nhé
+import { AppError } from '../utils/appError';
+/**
+ * Hàm xác thực người dùng sử dụng Auth Pool riêng biệt
+ * @param username Tên đăng nhập
+ * @param passwordPlain Mật khẩu thô do người dùng nhập từ giao diện
+ * @param clientIp Địa chỉ IP của máy khách để ghi nhật ký hệ thống
+ */
+export const authenticateUser = async (username: string, passwordPlain: string, clientIp: string) => {
+    try {
+        // 1. Sử dụng đúng authPool đã được cấu hình riêng để kết nối tới ThuVien_ACCOUNT
+        const result = await authPool.request()
+            .input('TenDangNhap', sql.VarChar(50), username)
+            .input('MatKhauPlain', sql.VarChar(100), passwordPlain)
+            .input('IP_Address', sql.VarChar(45), clientIp)
+            .execute('sp_Account_Login');
 
-// export const authenticateUser = async (username: string, passwordTho: string, clientIp: string) => {
-//     const passwordHashBuffer = crypto.createHash('sha256').update(passwordTho).digest();
+        const rows = result.recordset;
 
-//     const result = await accountPool.request()
-//         .input('username', sql.VarChar(50), username)
-//         .input('passwordHash', sql.VarBinary(sql.MAX), passwordHashBuffer)
-//         .input('ip_address', sql.VarChar(50), clientIp)
-//         .execute('sp_Login_CheckAccount');
+        // Nếu Stored Procedure không trả về dữ liệu (Trường hợp hy hữu khi SP lỗi)
+        if (!rows || rows.length === 0) {
+            return null;
+        }
 
-//     const rows = result.recordset;
+        const user = rows[0];
+        const maId = user.MaNV || user.MaDG;
 
-//     if (!rows || rows.length === 0 || rows[0].TenDangNhap === null) {
-//         return null; // Trả về null để Controller biết là sai pass/user
-//     }
+        // 2. Trả về thông tin định danh sạch cho lớp Controller xử lý tạo mã JWT
+        return {
+            username: user.TenDangNhap,
+            // Sẽ trả về chính xác chuỗi: 'DocGia', 'ThuThu', 'QuanLyKho', 'KeToan', hoặc 'GiamDoc'
+            // Chuỗi này khớp 100% với các case trong hàm getPoolByRole(roleName) của bạn
+            role: user.RoleName,
+            maId: maId
+        };
 
-//     const user = rows[0];
-//     const permissions = rows.map(r => r.PermissionName).filter(p => p !== null);
-//     const role = user.MaNV ? 'NHAN_VIEN' : 'DOC_GIA';
-//     const maId = user.MaNV || user.MaDG;
-
-//     return {
-//         username: user.TenDangNhap,
-//         role: role,
-//         maId: maId,
-//         permissions: permissions
-//     };
-// };
+    } catch (error: any) {
+        if (error instanceof AppError) {
+            throw error;
+        }
+        throw new AppError(error.message || 'Hệ thống xác thực gặp sự cố cố định.', 500);
+    }
+};

@@ -3,7 +3,10 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDatabases } from './configs/db';
 import authRouter from './router/auth';
-// import bookRouter from './router/book';
+import { errorHandler } from './middleware/errorHandler';
+import bookRouter from './router/book';
+import readerRouter from './router/reader';
+import fineRouter from './router/fine';
 
 dotenv.config();
 
@@ -18,10 +21,13 @@ connectDatabases().then(() => {
 app.use(cors());
 app.use(express.json());
 app.use('/api/auth', authRouter);
-// app.use('/api/book', bookRouter);
+app.use('/api/book', bookRouter);
+app.use('/api/reader', readerRouter);
+app.use('/api/fine', fineRouter);
 app.get('/', (req, res) => {
     res.send('🚀 Backend đang chạy!');
     });
+app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`🔥 Server running at http://localhost:${PORT}`);

@@ -1,20 +1,25 @@
-// import { Request, Response } from 'express';
-// import { fetchPublicBooks } from '../services/book';
+import { Request, Response, NextFunction } from 'express';
+import * as bookService from '../services/book';
+import { AppError } from '../utils/appError';
 
-// export const getPublicBooks = async (req: Request, res: Response): Promise<any> => {
-//     try {
-//         const books = await fetchPublicBooks();
-//         if (books.length === 0) {
-//             return res.status(404).json({ message: 'Hiện tại thư viện chưa có sách nào.' });
-//         }
+/**
+ * API Controller xử lý lấy danh sách sách cho Độc giả
+ * Endpoint: GET /api/reader/books
+ */
+export const getReaderBooks = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    try {
+        // Giả định middleware của bạn gán thông tin vào req.user
+        if (req.user && req.user.role !== 'DocGia') {
+            throw new AppError('Từ chối truy cập: Chỉ độc giả mới có quyền xem danh mục sách!', 403);
+        }
 
-//         return res.status(200).json({
-//             message: 'Lấy danh mục sách thành công',
-//             books: books
-//         });
+        // Gọi tầng service để bốc dữ liệu từ SQL Server
+        const books = await bookService.getBooksForReader();
 
-//     } catch (err) {
-//         console.error('Lỗi hệ thống tại API getPublicBooks:', err);
-//         return res.status(500).json({ message: 'Lỗi hệ thống nội bộ!' });
-//     }
-// };
+        // Trả về HTTP 200 cùng mảng dữ liệu sạch cho Vue 3 render giao diện
+        return res.status(200).json(books);
+
+    } catch (error) {
+        next(error);
+    }
+};
