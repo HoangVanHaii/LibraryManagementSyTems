@@ -9,6 +9,7 @@ import readerRouter from './router/reader';
 import fineRouter from './router/fine';
 import staffRouter from './router/staff';
 import warehouseRouter from './router/warehouse';
+import directorRouter from './router/director';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use('/api/reader', readerRouter);
 app.use('/api/fine', fineRouter);
 app.use('/api/staff', staffRouter);
 app.use('/api/warehouse', warehouseRouter);
+app.use('/api/director', directorRouter);
 
 app.get('/', (req, res) => {
     res.send('🚀 Backend đang chạy!');

@@ -13,9 +13,11 @@ import AccountantFinesView from '../view/AccountantFines.vue'
 import AccountantStaffView from '../view/AccountantStaff.vue'
 import DirectorAuditLogView from '../view/DirectorAuditLog.vue'
 import DirectorReportsView from '../view/DirectorReports.vue'
+import DirectorManageEmployees from '../view/DirectorManageEmployees.vue'
 import ReaderHomeView from '../view/ReaderHome.vue'
 import InventoryStat from '../view/InventoryStat.vue'
 import InventoryAlert from '../view/InventoryAlert.vue'
+
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
@@ -43,6 +45,7 @@ const router = createRouter({
                 { path: 'accountant/staff', name: 'accountant-staff', component: AccountantStaffView },
                 { path: 'director/audit-log', name: 'director-audit-log', component: DirectorAuditLogView },
                 { path: 'director/reports', name: 'director-reports', component: DirectorReportsView },
+                { path: 'director/employees', name: 'director-employees', component: DirectorManageEmployees },
                 { path: 'reader/home', name: 'reader-home', component: ReaderHomeView },
                 { path: 'inventory/statistics', name: 'inventory-statistics', component: InventoryStat },
                 { path: 'inventory/alerts', name: 'inventory-alerts', component: InventoryAlert }
