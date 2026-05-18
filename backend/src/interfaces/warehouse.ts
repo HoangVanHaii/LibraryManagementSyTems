@@ -8,6 +8,7 @@ export interface IBookInventory {
     GiaBia: number;
     SoLuongTon: number;
     ViTriKe?: string;
+    HinhAnh?: string;
 }
 export interface IBookInput {
     MaSach: string;
@@ -19,4 +20,5 @@ export interface IBookInput {
     GiaBia: number;
     SoLuongTon?: number;
     ViTriKe: string;
+    HinhAnh?: string;
 }

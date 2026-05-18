@@ -1,6 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
 import * as warehouseService from '../services/warehouse';
 import { AppError } from '../utils/appError';
+import cloudinary from '../configs/cloudinary';
+
+const uploadToCloudinary = (fileBuffer: Buffer): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            { folder: 'Library_Books' }, 
+            (error, result) => {
+                if (error) return reject(error);
+                if (result) return resolve(result.secure_url);
+                return reject(new Error('Upload lên Cloudinary thất bại không rõ nguyên nhân'));
+            }
+        );
+        uploadStream.end(fileBuffer);
+    });
+};
 
 export const getAllBooks = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
@@ -51,8 +66,15 @@ export const addBook = async (req: Request, res: Response, next: NextFunction): 
             throw new AppError('Vui lòng cung cấp đầy đủ thông tin bắt buộc của cuốn sách!', 400);
         }
 
-        await warehouseService.createNewBook(req.body);
+        let hinhAnhUrl = null;
+        if (req.file) {
+            hinhAnhUrl = await uploadToCloudinary(req.file.buffer);
+        }
+
+        await warehouseService.createNewBook({ ...req.body, HinhAnh: hinhAnhUrl });
+        
         return res.status(201).json({
+            success: true,
             message: `Khai báo thành công! Đầu sách [${TenSach}] đã được chèn vào danh mục kho.`
         });
     } catch (error) {
@@ -67,15 +89,21 @@ export const updateBookInfo = async (req: Request, res: Response, next: NextFunc
         }
 
         const { maSach } = req.params;
-        const { TenSach, GiaBia, ViTriKe } = req.body;
+        const { TenSach, GiaBia, ViTriKe, HinhAnh } = req.body;
 
         if (!TenSach || GiaBia === undefined || !ViTriKe) {
             throw new AppError('Thông tin chỉnh sửa sách không được phép để trống các trường cốt lõi!', 400);
         }
 
-        await warehouseService.updateBookDetails({ ...req.body, MaSach: maSach });
+        let hinhAnhUrl = HinhAnh || null;
+        if (req.file) {
+            hinhAnhUrl = await uploadToCloudinary(req.file.buffer);
+        }
+
+        await warehouseService.updateBookDetails({ ...req.body, MaSach: maSach, HinhAnh: hinhAnhUrl });
 
         return res.status(200).json({
+            success: true,
             message: `Cập nhật thành công! Hồ sơ mã sách [${maSach}] đã được đồng bộ lên CSDL.`
         });
     } catch (error) {

@@ -90,3 +90,51 @@ export const getDashboardStats = async (req: Request, res: Response, next: NextF
         next(error);
     }
 };
+
+export const fetchAuditLogs = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    try {
+        if ((req as any).user?.role !== 'GiamDoc') {
+            return res.status(403).json({ message: 'Từ chối đặc quyền: Chỉ Giám đốc mới được xem Nhật ký Hệ thống!' });
+        }
+
+        const { table, user, action } = req.query;
+
+        const logs = await directorService.getAuditLogsService(
+            table as string,
+            user as string,
+            action as string
+        );
+
+        return res.status(200).json({
+            success: true,
+            data: logs
+        });
+    } catch (error: any) {
+        console.error('🚨 Lỗi trong quá trình truy xuất Audit Log:', error);
+        next(error); 
+    }
+};
+
+export const fetchLoginHistory = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    try {
+        if ((req as any).user?.role !== 'GiamDoc') {
+            return res.status(403).json({ message: 'Từ chối đặc quyền: Chỉ Giám đốc mới có quyền giám sát an ninh hệ thống!' });
+        }
+
+        const { username, tuNgay, denNgay } = req.query;
+
+        const data = await directorService.getLoginHistoryList(
+            username as string,
+            tuNgay as string,
+            denNgay as string
+        );
+
+        return res.status(200).json({
+            success: true,
+            data: data
+        });
+    } catch (error) {
+        console.error('🚨 Lỗi hệ thống khi lấy lịch sử đăng nhập:', error);
+        next(error); 
+    }
+};
