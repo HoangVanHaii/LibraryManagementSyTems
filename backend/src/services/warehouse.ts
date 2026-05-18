@@ -53,6 +53,7 @@ export const createNewBook = async (book: IBookInput): Promise<void> => {
             .input('GiaBia', sql.Decimal(18, 2), book.GiaBia)
             .input('SoLuongTon', sql.Int, book.SoLuongTon || 0)
             .input('ViTriKe', sql.NVarChar(50), book.ViTriKe)
+            .input('HinhAnh', sql.VarChar(500), book.HinhAnh || null)
             .execute('sp_Kho_ThemSachMoi'); 
     } catch (error: any) {
         if (error.message) {
@@ -73,6 +74,7 @@ export const updateBookDetails = async (book: Omit<IBookInput, 'SoLuongTon'>): P
             .input('NamXuatBan', sql.Int, book.NamXuatBan || null)
             .input('GiaBia', sql.Decimal(18, 2), book.GiaBia)
             .input('ViTriKe', sql.NVarChar(50), book.ViTriKe)
+            .input('HinhAnh', sql.VarChar(500), book.HinhAnh || null)
             .execute('sp_Kho_CapNhatSach');
     } catch (error: any) {
         if (error.message) {

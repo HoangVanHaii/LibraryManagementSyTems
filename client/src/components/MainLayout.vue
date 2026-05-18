@@ -204,6 +204,17 @@
           </router-link>
 
           <router-link 
+            to="/director/login-history" 
+            class="flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors group"
+            active-class="bg-blue-600 text-white font-bold shadow-md hover:bg-blue-700 hover:text-white"
+          >
+            <svg class="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            <span v-if="isSidebarOpen" class="ml-3 whitespace-nowrap">Nhật ký Truy cập</span>
+          </router-link>
+
+          <router-link 
             to="/director/reports" 
             class="flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors group"
             active-class="bg-blue-50 text-blue-700 font-bold border-l-4 border-blue-600"

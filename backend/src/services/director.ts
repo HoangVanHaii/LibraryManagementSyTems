@@ -98,3 +98,35 @@ export const getDashboardStatsService = async (
         luuLuong: recordsets[2]     
     };
 };
+
+export const getAuditLogsService = async (table?: string, user?: string, action?: string) => {
+    try {
+        const pool = await giamDocPool;
+        const request = pool.request();
+        request.input('TenBang', sql.VarChar, table || null);
+        request.input('DatabaseUser', sql.VarChar, user || null);
+        request.input('HanhDong', sql.VarChar, action || null);
+
+        const result = await request.execute('sp_GetAuditLogs');
+        
+        return result.recordset;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const getLoginHistoryList = async (username?: string, tuNgay?: string, denNgay?: string) => {
+    try {
+        const request = giamDocPool.request();
+            
+        request.input('TenDangNhap', sql.VarChar(50), username || null);
+        request.input('TuNgay', sql.Date, tuNgay || null);
+        request.input('DenNgay', sql.Date, denNgay || null);
+
+        const result = await request.execute('ThuVien_ACCOUNT.dbo.sp_GetLoginHistory');
+        
+        return result.recordset;
+    } catch (error) {
+        throw error;
+    }
+};
