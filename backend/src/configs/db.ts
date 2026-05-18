@@ -3,10 +3,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// ======================================================
-// BASE CONFIG
-// ======================================================
-
 const baseConfig: sql.config = {
     server: process.env.DB_SERVER || 'localhost',
 
@@ -25,10 +21,6 @@ const baseConfig: sql.config = {
     }
 };
 
-// ======================================================
-// AUTH POOL
-// ======================================================
-
 export const authPool = new sql.ConnectionPool({
     ...baseConfig,
 
@@ -38,9 +30,6 @@ export const authPool = new sql.ConnectionPool({
     database: process.env.DB_ACCOUNT_NAME,
 });
 
-// ======================================================
-// NGHIỆP VỤ POOLS
-// ======================================================
 
 export const docGiaPool = new sql.ConnectionPool({
     ...baseConfig,
@@ -87,9 +76,6 @@ export const giamDocPool = new sql.ConnectionPool({
     database: process.env.DB_NGHIEPVU_NAME,
 });
 
-// ======================================================
-// GET POOL BY ROLE
-// ======================================================
 
 export const getPoolByRole = (roleName: string): sql.ConnectionPool => {
 
@@ -117,9 +103,6 @@ export const getPoolByRole = (roleName: string): sql.ConnectionPool => {
     }
 };
 
-// ======================================================
-// CONNECT DATABASES
-// ======================================================
 
 export const connectDatabases = async (): Promise<void> => {
 

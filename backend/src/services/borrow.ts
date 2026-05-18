@@ -18,23 +18,35 @@ export const createBorrowTicketService = async (data: CreateBorrowDTO, maNV: str
     await request.execute('ThuVien_NGHIEPVU.dbo.SP_LapPhieuMuon');
 };
 
-export const returnBookService = async (data:any , role: string): Promise<void> => {
+export const returnBookService = async (role: string, maPhieu: string, maSach: string, tinhTrang: string) => {
     const currentPool = getPoolByRole(role);
-
-    const priceReq = currentPool.request();
-    priceReq.input('MaSach', sql.VarChar(10), data.maSach);
-    const bookResult = await priceReq.query('SELECT GiaBia FROM ThuVien_NGHIEPVU.dbo.SACH WHERE MaSach = @MaSach');
-    
-    if (!bookResult.recordset || bookResult.recordset.length === 0) {
-        throw new AppError('Cuốn sách này không tồn tại trong kho hệ thống!', 404);
-    }
-    const giaBiaSach = bookResult.recordset[0].GiaBia;
-
     const request = currentPool.request();
-    request.input('MaPhieu', sql.VarChar(15), data.maPhieu);
-    request.input('MaSach', sql.VarChar(10), data.maSach);
-    request.input('TinhTrang', sql.NVarChar(255), data.tinhTrang);
-    request.input('GiaBiaSach', sql.Decimal(18, 2), giaBiaSach);
 
-    await request.execute('ThuVien_NGHIEPVU.dbo.SP_GhiNhanTraSach');
+    request.input('MaPhieu', sql.VarChar(20), maPhieu);
+    request.input('MaSach', sql.VarChar(20), maSach);
+    request.input('TinhTrang', sql.NVarChar(50), tinhTrang);
+
+    const result = await request.execute('ThuVien_NGHIEPVU.dbo.SP_GhiNhanTraSach');
+    
+    return result.recordset[0]; 
+};
+
+export const getBorrowsListService = async (role: string, searchQuery?: string, status?: string) => {
+    const currentPool = getPoolByRole(role);
+    const request = currentPool.request();
+    
+    if (searchQuery) {
+        request.input('SearchTerm', sql.NVarChar(50), searchQuery);
+    } else {
+        request.input('SearchTerm', sql.NVarChar(50), null);
+    }
+
+    if (status) {
+        request.input('Status', sql.VarChar(20), status);
+    } else {
+        request.input('Status', sql.VarChar(20), null);
+    }
+    const result = await request.execute('ThuVien_NGHIEPVU.dbo.SP_LayDanhSachPhieuMuon');
+    
+    return result.recordset;
 };

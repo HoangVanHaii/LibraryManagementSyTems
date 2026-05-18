@@ -6,6 +6,7 @@ import { validateRequest } from '../middleware/validateRequest';
 
 const router = Router();
 
+router.get('/list', authMiddleware, checkRole(['ThuThu', 'ADMIN']), borrowMiddleware.validateGetBorrowListRules,validateRequest, borrowController.getBorrowList);
 router.post('/create', authMiddleware, checkRole(['ThuThu', 'ADMIN']), borrowMiddleware.validateBorrowRules, validateRequest, borrowController.createBorrowTicket);
 
 router.put('/return', authMiddleware, checkRole(['ThuThu']), borrowMiddleware.validateReturnRules, validateRequest, borrowController.returnBook);

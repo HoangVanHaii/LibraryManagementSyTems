@@ -1,10 +1,9 @@
-import { giamDocPool } from '../configs/db'; 
+import { giamDocPool,getPoolByRole } from '../configs/db'; 
 import sql from 'mssql';
 import { CreateEmployeeDTO } from '../interfaces/director';
 import { AppError } from '../utils/appError';
 import crypto from 'crypto';
-
-
+import { IDashboardStatsResponse } from '../interfaces/director';
 
 export const createEmployeeAccountService = async (data: CreateEmployeeDTO): Promise<string> => {
     const salt = crypto.randomBytes(16).toString('hex');
@@ -56,7 +55,6 @@ export const getEmployeeList = async (): Promise<any[]> => {
     } catch (error: any) { throw error; }
 };
 
-// 2. Dịch vụ xem chi tiết (Mở khóa giải mã mật mã)
 export const getEmployeeDetails = async (maNV: string): Promise<any> => {
     try {
         const result = await giamDocPool.request()
@@ -72,10 +70,31 @@ export const toggleEmployeeStatusService = async (maNV: string, hanhDong: 'KHOA'
         req.input('MaNV', sql.VarChar(10), maNV);
         req.input('HanhDong', sql.VarChar(20), hanhDong);
 
-        // Gọi đích danh SP bên Database ACCOUNT
         await req.execute('ThuVien_ACCOUNT.dbo.sp_GiamDoc_ThayDoiTrangThaiTaiKhoan');
     } catch (error: any) {
-        // Ném lỗi RAISERROR từ SQL Server ra ngoài (Ví dụ: "Không tìm thấy tài khoản...")
         throw error;
     }
+};
+
+
+export const getDashboardStatsService = async (
+    roleName: string, 
+    tuNgay?: string, 
+    denNgay?: string
+): Promise<IDashboardStatsResponse> => {
+    
+    const currentPool = getPoolByRole(roleName);
+    const request = currentPool.request();
+
+    if (tuNgay) request.input('TuNgay', sql.Date, new Date(tuNgay));
+    if (denNgay) request.input('DenNgay', sql.Date, new Date(denNgay));
+
+    const result = await request.execute('ThuVien_NGHIEPVU.dbo.SP_GiamDoc_ThongKeTongQuan');
+    const recordsets = result.recordsets as any[][];
+
+    return {
+        tongQuan: recordsets[0][0],
+        topSach: recordsets[1],     
+        luuLuong: recordsets[2]     
+    };
 };

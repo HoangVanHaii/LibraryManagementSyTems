@@ -10,13 +10,12 @@ import fineRouter from './router/fine';
 import staffRouter from './router/staff';
 import warehouseRouter from './router/warehouse';
 import directorRouter from './router/director';
-
+import borrowRouter from './router/borrow';
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Kết nối cơ sở dữ liệu khi server khởi động
 connectDatabases().then(() => {
     console.log('✅ Cơ sở dữ liệu đã được kết nối');
 });
@@ -30,7 +29,8 @@ app.use('/api/fine', fineRouter);
 app.use('/api/staff', staffRouter);
 app.use('/api/warehouse', warehouseRouter);
 app.use('/api/director', directorRouter);
-
+app.use('/api/borrow', borrowRouter);
+app.use('/api/director', directorRouter);
 app.get('/', (req, res) => {
     res.send('🚀 Backend đang chạy!');
     });

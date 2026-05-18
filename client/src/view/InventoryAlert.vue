@@ -172,10 +172,9 @@ interface LowStockItem {
 const alertsList = ref<LowStockItem[]>([]);
 const isLoading = ref(true);
 
-// Điều khiển Trạng thái Custom Modal Form
 const isModalOpen = ref(false);
 const selectedBook = ref<LowStockItem | null>(null);
-const qtyToImport = ref<number>(30); // Gợi ý mặc định tái đặt hàng 30 cuốn
+const qtyToImport = ref<number>(30); 
 const formError = ref('');
 const isSubmitting = ref(false);
 

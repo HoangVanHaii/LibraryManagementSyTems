@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as directorService from '../services/director';
+
 export const processCreateEmployee = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
         if ((req as any).user?.role !== 'GiamDoc') {
@@ -66,5 +67,26 @@ export const toggleEmployeeStatus = async (req: Request, res: Response, next: Ne
         return res.status(200).json({ message: msgResponse });
     } catch (error: any) {
         return res.status(400).json({ message: error.message || 'Tiến trình điều hướng tài khoản thất bại.' });
+    }
+};
+
+export const getDashboardStats = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const roleName = (req as any).user.role; 
+        
+        const { tuNgay, denNgay } = req.query;
+
+        const stats = await directorService.getDashboardStatsService(
+            roleName,
+            tuNgay as string,
+            denNgay as string
+        );
+
+        res.status(200).json({
+            success: true,
+            data: stats
+        });
+    } catch (error) {
+        next(error);
     }
 };

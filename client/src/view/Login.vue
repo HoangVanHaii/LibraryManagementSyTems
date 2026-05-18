@@ -105,7 +105,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios'; // Hãy đảm bảo bạn đã cài đặt axios (`npm install axios`)
+import axios from 'axios'; 
 
 const router = useRouter();
 
@@ -114,7 +114,6 @@ const password = ref('');
 const isLoading = ref(false);
 const errorMessage = ref('');
 
-// Điền tài khoản demo thật dưới cơ sở dữ liệu để test nhanh
 const fillData = (user: string) => {
   username.value = user;
   password.value = user === 'haidocgia' || user === 'dangdocgia' ? 'NaCl123' : 'NaCl456'; // Khớp mật khẩu sinh muối salt
@@ -126,8 +125,6 @@ const handleLogin = async () => {
   errorMessage.value = '';
 
   try {
-    // Gọi API Node.js Backend đã xây dựng ở turn trước
-    // Bạn thay đổi URL '/api/auth/login' cho khớp chính xác với Router của backend nhé
     const response = await axios.post('http://localhost:3000/api/auth/login', {
       username: username.value,
       password: password.value
@@ -135,15 +132,13 @@ const handleLogin = async () => {
     console.log('Phản hồi từ API đăng nhập:', response.data);
     const { token, user } = response.data;
 
-    // LƯU TRỮ PHIÊN LÀM VIỆC AN TOÀN ĐỂ ROUTE GUARD FRONTEND ĐỌC QUYỀN (RBAC)
     localStorage.setItem('user_session', JSON.stringify({
       token: token,
-      role: user.role, // Trả về chuỗi: 'DocGia', 'ThuThu', 'KeToan', 'GiamDoc'...
+      role: user.role,
       username: user.username,
       maId: user.maId
     }));
     alert(user.role);
-    // ĐIỀU HƯỚNG SANG PHÂN HỆ CHỨC NĂNG TƯƠNG ỨNG THEO ROLE
     let targetPath = '/';
     const userRole = user.role;
 
@@ -152,13 +147,10 @@ const handleLogin = async () => {
     else if (userRole === 'QuanLyKho' || userRole === 'Kho') targetPath = '/inventory/books';
     else if (userRole === 'KeToan') targetPath = '/accountant/fines';
     else if (userRole === 'GiamDoc') targetPath = '/director/audit-log';
-
-    // Điều hướng mượt mà không gây F5 reload trang trắng xoá (Chuẩn SPA)
     router.push(targetPath);
 
   } catch (error: any) {
     console.log('Lỗi khi gọi API đăng nhập:',error.response);
-    // TRÍCH XUẤT THÔNG BÁO LỖI TIẾNG VIỆT TỪ THROW SQL SERVER GỬI LÊN
     if (error.response && error.response.data && error.response.data.message) {
       errorMessage.value = error.response.data.message;
     } else {
