@@ -55,20 +55,75 @@ export const processFinePayment = async (req: Request, res: Response, next: Next
         if ((req as any).user?.role !== 'KeToan') {
             throw new AppError('Từ chối truy cập: Chỉ kế toán mới có quyền thực hiện giao dịch thu tiền phạt!', 403);
         }
+        const maNV_KeToan = (req as any).user?.id; 
+        
+        if (!maNV_KeToan) {
+            throw new AppError('Không tìm thấy danh tính Kế toán viên lập phiếu. Vui lòng đăng nhập lại!', 401);
+        }
 
+        // 3. Lấy dữ liệu độc giả đóng tiền từ body
         const { maDG, soTienThu } = req.body;
 
         if (!maDG || soTienThu === undefined) {
             throw new AppError('Thiếu thông tin Mã Độc giả hoặc Số tiền thu!', 400);
         }
 
-        // Thực thi nghiệp vụ nộp tiền
-        await fineService.collectFinePayment(maDG, Number(soTienThu));
+        // 4. Thực thi nghiệp vụ nộp tiền kèm theo 3 tham số bắt buộc
+        await fineService.collectFinePayment(maDG, Number(soTienThu), maNV_KeToan);
 
         return res.status(200).json({
             message: `Lập phiếu thu thành công! Hệ thống đã trừ ${Number(soTienThu).toLocaleString('vi-VN')} VNĐ vào sổ công nợ của độc giả [${maDG}].`
         });
     } catch (error) {
         next(error);
+    }
+};
+// POST /api/collect-fine/detail-item -> Xử lý nộp phạt lẻ từng cuốn sách
+export const processDetailItemPayment = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    try {
+        if ((req as any).user?.role !== 'KeToan') {
+            throw new AppError('Từ chối truy cập: Chỉ vai trò Kế toán mới có quyền thực hiện giao dịch thu tiền phạt!', 403);
+        }
+        const maNV_KeToan = (req as any).user?.id;
+
+        if (!maNV_KeToan) {
+            throw new AppError('Không tìm thấy danh tính Kế toán viên lập phiếu thu lẻ. Vui lòng đăng nhập lại!', 401);
+        }
+        
+        const { maPhieu, maSach } = req.body;
+        if (!maPhieu || !maSach) {
+            throw new AppError('Yêu cầu thiếu thông tin Mã phiếu mượn hoặc Mã sách để lập biên lai lẻ!', 400);
+        }
+
+        await fineService.collectDetailFinePayment(maPhieu, maSach, maNV_KeToan);
+
+        return res.status(200).json({
+            message: `Lập biên lai thu tiền thành công cho đầu sách [${maSach}] thuộc phiếu mượn [${maPhieu}]. Hệ thống đã gạch nợ thành công!`
+        });
+    } catch (error) {
+
+        next(error);
+    }
+};
+// POST /api/fine/accountant/collect-fine -> Tất toán toàn bộ công nợ phạt
+export const collectAllFines = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    try {
+        if ((req as any).user?.role !== 'KeToan') {
+            throw new AppError('Từ chối đặc quyền: Chỉ kế toán viên mới có quyền lập biên lai tất toán!', 403);
+        }
+
+        const maNV_KeToan = (req as any).user?.id;
+        const { maDG } = req.body;
+
+        if (!maDG) {
+            throw new AppError('Vui lòng cung cấp Mã độc giả để tiến hành tất toán gộp!', 400);
+        }
+        await fineService.collectAllFinesPayment(maDG, maNV_KeToan);
+
+        return res.status(200).json({
+            message: `Giao dịch hoàn tất! Hệ thống đã lập các biên lai thu tiền phạt tương ứng và xóa sạch công nợ cho độc giả [${maDG}].`
+        });
+    } catch (error: any) {
+        return res.status(400).json({ message: error.message || 'Tất toán toàn bộ công nợ thất bại.' });
     }
 };

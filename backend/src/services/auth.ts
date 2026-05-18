@@ -36,9 +36,9 @@ export const authenticateUser = async (username: string, passwordPlain: string, 
         };
 
     } catch (error: any) {
-        if (error instanceof AppError) {
-            throw error;
+        if (error.message) {
+            throw new AppError(error.message, 400);
         }
-        throw new AppError(error.message || 'Hệ thống xác thực gặp sự cố cố định.', 500);
+        throw error;
     }
 };

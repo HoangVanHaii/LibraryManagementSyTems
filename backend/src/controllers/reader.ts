@@ -3,7 +3,6 @@ import * as borrowService from '../services/reader';
 import * as readerService from '../services/reader';
 import { AppError } from '../utils/appError';
 import { CreateReaderDTO } from '../interfaces/reader';
-import { CreateBorrowDTO } from '../interfaces/borrow';
 
 export const getReaderHistory = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {

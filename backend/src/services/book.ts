@@ -27,9 +27,9 @@ export const getBooksForReader = async (): Promise<IReaderBook[]> => {
         // Ép kiểu mảng dữ liệu recordset trả về theo Interface IReaderBook chuẩn sạch
         return result.recordset as IReaderBook[];
     } catch (error: any) {
-        if (error instanceof AppError) {
-            throw error;
+        if (error.message) {
+            throw new AppError(error.message, 400);
         }
-        throw new AppError(error.message || 'Hệ thống gặp sự cố khi lấy danh sách sách.', 500);
+        throw error;
     }
 };

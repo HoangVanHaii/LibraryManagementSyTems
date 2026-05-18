@@ -17,11 +17,6 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <div v-else class="flex-shrink-0 text-red-500">
-              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
             <div class="ml-3 w-0 flex-1 pt-0.5">
               <p class="text-sm font-bold text-gray-900">
                 {{ toast.type === 'success' ? 'Thành công' : 'Thông báo lỗi' }}
@@ -45,7 +40,7 @@
           Quản lý Thu Phạt Công Nợ
         </h2>
         <p class="mt-1 text-sm text-gray-500">
-          Nghiệp vụ tất toán công nợ độc giả. Số tiền phạt được CSDL tính toán tự động dựa trên chính sách bảo mật nghiêm ngặt (Anti-tamper).
+          Nghiệp vụ tất toán công nợ độc giả. Hệ thống áp dụng quy tắc gác cổng kế toán: Chỉ cho phép đóng tiền phạt đối với các đầu sách đã hoàn trả xong về kho vật lý.
         </p>
       </div>
     </div>
@@ -108,17 +103,17 @@
     </div>
 
     <div v-if="selectedReader" class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm transition-opacity">
-      <div class="bg-white rounded-xl shadow-2xl w-full max-w-xl overflow-hidden border">
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden border">
         
         <div class="bg-slate-900 px-6 py-4 text-white flex justify-between items-center">
           <div>
             <h3 class="text-base font-bold">Phiếu Thu Tiền Vi Phạm</h3>
-            <p class="text-[11px] text-slate-400 font-medium">Hóa đơn chứng từ kế toán thư viện nội bộ</p>
+            <p class="text-[11px] text-slate-400 font-medium">Hóa đơn chứng từ kiểm soát chi tiết từng đầu sách</p>
           </div>
           <button @click="selectedReader = null" class="text-slate-400 hover:text-white text-xl font-bold transition-colors">&times;</button>
         </div>
         
-        <div class="p-6 space-y-4 max-h-[50vh] overflow-y-auto">
+        <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
           <div class="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg border">
             <div>
               <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Mã Độc Giả</label>
@@ -131,22 +126,49 @@
           </div>
           
           <div class="space-y-2">
-            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Chi tiết các khoản sách phạt vi phạm:</label>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Chi tiết danh mục sách phạt của độc giả:</label>
+            
             <div v-if="isModalLoading" class="text-center py-4 text-xs text-gray-400 animate-pulse font-medium">
               Đang truy quét danh mục phiếu phạt từ hệ thống SQL Server...
             </div>
+            
             <div v-else class="space-y-2">
-              <div v-for="item in fineDetails" :key="item.MaSach" class="p-3 border border-gray-100 rounded-lg bg-slate-50/50 text-xs">
-                <div class="flex justify-between items-start">
-                  <div class="space-y-0.5 max-w-[80%]">
-                    <h4 class="font-bold text-gray-800 truncate">{{ item.TenSach }}</h4>
-                    <p class="text-[10px] text-gray-400">Mã phiếu mượn: <span class="font-mono font-semibold">{{ item.MaPhieu }}</span></p>
-                    <p class="text-red-600 font-medium flex items-center pt-0.5">
-                      <span class="w-1 h-1 bg-red-500 rounded-full mr-1"></span>
-                      Lý do: {{ item.LyDoPhat }}
-                    </p>
-                  </div>
-                  <span class="font-extrabold text-red-600 text-right whitespace-nowrap">{{ item.TienPhatKyNay.toLocaleString('vi-VN') }}đ</span>
+              <div 
+                v-for="item in fineDetails" 
+                :key="item.MaPhieu + item.MaSach" 
+                class="p-3 border border-gray-100 rounded-lg bg-slate-50/50 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"
+              >
+                <div class="space-y-0.5 max-w-[75%]">
+                  <h4 class="font-bold text-gray-800 truncate">{{ item.TenSach }}</h4>
+                  <p class="text-[10px] text-gray-400">
+                    Mã phiếu mượn: <span class="font-mono font-semibold">{{ item.MaPhieu }}</span> | Mã sách: <span class="font-mono font-semibold">{{ item.MaSach }}</span>
+                  </p>
+                  <p class="font-semibold flex items-center pt-0.5" :class="item.ChoPhepThanhToan === 1 ? 'text-amber-600' : 'text-red-600'">
+                    <span class="w-1.5 h-1.5 rounded-full mr-1.5" :class="item.ChoPhepThanhToan === 1 ? 'bg-amber-500' : 'bg-red-500'"></span>
+                    Lý do: {{ item.LyDoPhat }}
+                  </p>
+                </div>
+
+                <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-end flex-shrink-0">
+                  <span class="font-black text-red-600 text-right text-sm whitespace-nowrap">
+                    {{ item.TienPhatKyNay.toLocaleString('vi-VN') }}đ
+                  </span>
+                  
+                  <button 
+                    v-if="item.ChoPhepThanhToan === 1"
+                    @click="paySingleBookFine(item)"
+                    :disabled="isCollecting"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-md text-[11px] font-bold transition-colors shadow-sm disabled:bg-gray-400 whitespace-nowrap"
+                  >
+                    Thanh toán lẻ
+                  </button>
+                  <span 
+                    v-else 
+                    class="text-[10px] text-gray-400 font-bold bg-gray-100 px-2 py-1 rounded border whitespace-nowrap block"
+                    title="Độc giả bắt buộc phải hoàn trả cuốn sách này về kho mới có thể tất toán tiền phạt"
+                  >
+                    Chờ trả sách
+                  </span>
                 </div>
               </div>
             </div>
@@ -165,6 +187,9 @@
                 class="block w-full p-3 pl-10 text-xl font-black text-emerald-700 bg-gray-50 border border-gray-300 rounded-lg cursor-not-allowed focus:ring-0"
               >
             </div>
+            <p v-if="!canPayAll && fineDetails.length > 0" class="mt-1.5 text-[11px] text-amber-600 font-semibold flex items-center">
+              ⚠ Chức năng thu tiền toàn bộ đang khóa vì hồ sơ độc giả có đầu sách chưa được hoàn trả.
+            </p>
           </div>
         </div>
 
@@ -172,10 +197,10 @@
           <button @click="selectedReader = null" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Hủy phiếu</button>
           <button 
             @click="isConfirmOpen = true" 
-            :disabled="isCollecting || isModalLoading"
-            class="px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+            :disabled="isCollecting || isModalLoading || !canPayAll"
+            class="px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-all shadow-sm"
           >
-            {{ isCollecting ? 'Đang lập biên lai...' : 'Xác nhận thanh toán' }}
+            {{ isCollecting ? 'Đang lập biên lai...' : 'Xác nhận thanh toán toàn bộ' }}
           </button>
         </div>
       </div>
@@ -190,7 +215,7 @@
         </div>
         <h3 class="text-base font-bold text-gray-900 mb-2">Xác nhận giao dịch</h3>
         <p class="text-xs font-semibold text-gray-500 leading-relaxed mb-6">
-          Hệ thống sẽ lập biên lai thu số tiền <span class="text-emerald-600 font-bold">{{ selectedReader?.CongNo.toLocaleString('vi-VN') }}đ</span> và xóa sạch công nợ phạt cho độc giả <span class="font-bold text-gray-800">{{ selectedReader?.HoTen }}</span>. Thao tác này ghi nhận vào Audit Log kiểm toán và không thể hoàn tác.
+          Hệ thống sẽ lập biên lai thu tổng số tiền <span class="text-emerald-600 font-bold">{{ selectedReader?.CongNo.toLocaleString('vi-VN') }}đ</span> và xóa sạch công nợ phạt cho độc giả <span class="font-bold text-gray-800">{{ selectedReader?.HoTen }}</span>. Thao tác này ghi nhận vào Audit Log kiểm toán và không thể hoàn tác.
         </p>
         <div class="flex justify-center space-x-3">
           <button 
@@ -232,6 +257,7 @@ interface FineBookDetail {
   HanTra: string;
   NgayTraThucTe: string | null;
   TienPhatKyNay: number;
+  ChoPhepThanhToan: number; // 🚀 Nạp thêm trường trạng thái khóa từ SP mới
   LyDoPhat: string;
 }
 
@@ -242,24 +268,21 @@ const selectedReader = ref<FineReader | null>(null);
 const isLoading = ref(false);
 const isModalLoading = ref(false);
 const isCollecting = ref(false);
-const isConfirmOpen = ref(false); // Quản lý đóng mở Custom Confirm Dialog
+const isConfirmOpen = ref(false);
 
 const searchQuery = ref('');
-const globalMessage = ref('');
 
-// Trạng thái Reactive của Custom Toast Notification
 const toast = ref({
   show: false,
   message: '',
   type: 'success' as 'success' | 'error'
 });
 
-// Hàm kích hoạt Toast Notification thay thế hàm alert() thô kệch
 const triggerToast = (msg: string, type: 'success' | 'error' = 'success') => {
   toast.value = { show: true, message: msg, type };
   setTimeout(() => {
     toast.value.show = false;
-  }, 3500); // 3.5 giây tự đóng
+  }, 3500);
 };
 
 const getAuthHeaders = () => {
@@ -268,7 +291,7 @@ const getAuthHeaders = () => {
   return { Authorization: `Bearer ${JSON.parse(sessionRaw).token}` };
 };
 
-// API 1: Tải danh sách tổng quan
+// API 1: Tải danh mục tổng quan nợ (Đã đổi sang nạp VIEW tính toán động)
 const loadFineReadersList = async () => {
   isLoading.value = true;
   try {
@@ -281,13 +304,14 @@ const loadFineReadersList = async () => {
   }
 };
 
-// API 2: Tải chi tiết lỗi phạt của 1 độc giả
+// API 2: Tải chi tiết lỗi phạt lẻ của độc giả được chọn
 const openPaymentModal = async (reader: FineReader) => {
   selectedReader.value = reader;
   isModalLoading.value = true;
   fineDetails.value = [];
   
   try {
+    // Gọi tuyến API nạp chi tiết các đầu sách dính phạt
     const response = await axios.get(`http://localhost:3000/api/fine/accountant/fines/${reader.MaDG}`, { headers: getAuthHeaders() });
     fineDetails.value = response.data;
   } catch (error: any) {
@@ -298,11 +322,48 @@ const openPaymentModal = async (reader: FineReader) => {
   }
 };
 
-// API 3: Thực thi nộp tiền sau khi đã qua hộp thoại Custom Confirm
+// 🚀 NGHIỆP VỤ MỚI: HÀM THỰC THI THANH TOÁN LẺ CHO 1 ĐẦU SÁCH ĐÃ TRẢ
+const paySingleBookFine = async (item: FineBookDetail) => {
+  isCollecting.value = true;
+  try {
+    const response = await axios.post('http://localhost:3000/api/fine/collect-fine/detail-item', {
+      maPhieu: item.MaPhieu,
+      maSach: item.MaSach
+    }, { headers: getAuthHeaders() });
+    console.log("thành công ",response.data);
+    triggerToast(response.data.message, 'success');
+    
+    // Tải lại danh sách nợ thô bên ngoài để cập nhật lại số tiền nợ tổng của hồ sơ độc giả
+    await loadFineReadersList();
+
+    if (selectedReader.value) {
+      // Tìm kiếm xem độc giả này có còn dư nợ phạt trên bảng tổng không
+      const checkReaderStillOwes = fineReaders.value.find(r => r.MaDG === selectedReader.value?.MaDG);
+      
+      if (checkReaderStillOwes) {
+        // Nếu còn dính nợ của các cuốn sách khác, cập nhật lại số tiền tổng nợ trên modal hiển thị
+        selectedReader.value.CongNo = checkReaderStillOwes.CongNo;
+        // Đồng thời tải lại danh sách phạt chi tiết để cuốn sách vừa thanh toán biến mất khỏi bảng
+        const refreshDetails = await axios.get(`http://localhost:3000/api/fine/accountant/fines/${selectedReader.value.MaDG}`, { headers: getAuthHeaders() });
+        fineDetails.value = refreshDetails.data;
+      } else {
+        // Độc giả đã tất toán sạch nợ -> Tự động đóng modal hóa đơn chính
+        selectedReader.value = null;
+      }
+    }
+  } catch (error: any) {
+    console.log("lỗi ",error);
+    triggerToast(error.response?.data?.message || 'Giao dịch thanh toán lẻ đầu sách thất bại.', 'error');
+  } finally {
+    isCollecting.value = false;
+  }
+};
+
+// API 3: Thực thi nộp tiền toàn bộ sau khi đã qua hộp thoại Custom Confirm
 const executePaymentAPI = async () => {
   if (!selectedReader.value) return;
 
-  isConfirmOpen.value = false; // Đóng ngay hộp thoại xác nhận
+  isConfirmOpen.value = false;
   isCollecting.value = true;
   
   try {
@@ -311,15 +372,22 @@ const executePaymentAPI = async () => {
       soTienThu: selectedReader.value.CongNo
     }, { headers: getAuthHeaders() });
 
-    triggerToast(response.data.message, 'success'); // Bắn toast xanh thành công
-    selectedReader.value = null; // Đóng modal hóa đơn chính
-    await loadFineReadersList();  // Tải lại bảng tổng quan mới
+    triggerToast(response.data.message, 'success');
+    selectedReader.value = null;
+    await loadFineReadersList();
   } catch (error: any) {
-    triggerToast(error.response?.data?.message || 'Giao dịch khấu trừ thất bại.', 'error'); // Bắn toast đỏ báo lỗi
+    triggerToast(error.response?.data?.message || 'Giao dịch khấu trừ thất bại.', 'error');
   } finally {
     isCollecting.value = false;
   }
 };
+
+// 🚀 THUẬT TOÁN ĐÁNH GIÁ CHỐT PHIẾU: Kiểm tra toàn bộ sách phạt trong danh sách đã được trả chưa
+const canPayAll = computed(() => {
+  if (fineDetails.value.length === 0) return false;
+  // Trả về true nếu tất cả các phần tử con đều sở hữu thuộc tính ChoPhepThanhToan === 1
+  return fineDetails.value.every(item => item.ChoPhepThanhToan === 1);
+});
 
 const filteredReaders = computed(() => {
   return fineReaders.value.filter(reader => {
@@ -328,11 +396,6 @@ const filteredReaders = computed(() => {
     return reader.MaDG.toLowerCase().includes(query) || reader.HoTen.toLowerCase().includes(query);
   });
 });
-
-const formatDate = (dateStr: string) => {
-  if (!dateStr) return '-';
-  return new Date(dateStr).toLocaleDateString('vi-VN');
-};
 
 onMounted(() => {
   loadFineReadersList();

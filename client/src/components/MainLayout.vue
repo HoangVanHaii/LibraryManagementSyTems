@@ -152,12 +152,31 @@
             <span v-if="isSidebarOpen" class="ml-3 whitespace-nowrap">Quản lý Danh mục Sách</span>
           </router-link>
 
-          <a href="#" class="flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors group" :title="!isSidebarOpen ? 'Thống kê nhập/xuất' : ''">
+          <router-link 
+            to="/inventory/statistics" 
+            class="flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors group" 
+            :title="!isSidebarOpen ? 'Thống kê nhập/xuất' : ''"
+            active-class="bg-blue-50 text-blue-700 font-bold border-l-4 border-blue-600"
+          >
             <svg class="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
             </svg>
             <span v-if="isSidebarOpen" class="ml-3 whitespace-nowrap">Thống kê Nhập/Xuất</span>
-          </a>
+          </router-link>
+          <router-link 
+            to="/inventory/alerts" 
+            class="flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors group" 
+            :title="!isSidebarOpen ? 'Cảnh báo hết sách' : ''"
+            active-class="bg-red-50 text-red-600 font-bold border-l-4 border-l-red-500"
+          >
+            <svg class="w-6 h-6 flex-shrink-0 text-red-500 group-hover:text-red-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+            <span v-if="isSidebarOpen" class="ml-3 whitespace-nowrap flex items-center justify-between w-full">
+              <span>Cảnh báo hết sách</span>
+              <span class="w-2 h-2 rounded-full bg-red-500 animate-ping mr-1"></span>
+            </span>
+          </router-link>
         </template>
 
         <template v-if="userRole === 'GiamDoc'">
@@ -189,10 +208,10 @@
       <div class="p-4 border-t border-gray-200 overflow-hidden">
         <div class="flex items-center" :class="isSidebarOpen ? 'space-x-3' : 'justify-center'">
           <div class="w-10 h-10 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center text-blue-700 font-bold shadow-sm">
-            H
+            {{ sessionRaw ? JSON.parse(sessionRaw).username.charAt(0) : 'H' }}
           </div>
           <div v-if="isSidebarOpen" class="flex-1 overflow-hidden transition-opacity duration-300">
-            <p class="text-sm font-semibold text-gray-900 truncate">Hoàng Văn Hải</p>
+            <p class="text-sm font-semibold text-gray-900 truncate">{{ savedUser }} - {{ savedUserId }}</p>
             <p class="text-xs text-gray-500 truncate">Vai trò: <span class="font-bold text-blue-600">{{ userRole }}</span></p>
           </div>
           <button v-if="isSidebarOpen" @click="handleLogout" class="text-gray-400 hover:text-red-500 transition-colors" title="Đăng xuất">
@@ -245,6 +264,8 @@ type Role = 'DocGia' | 'ThuThu' | 'QuanLyKho' | 'KeToan' | 'GiamDoc';
 
 const sessionRaw = localStorage.getItem('user_session');
 const savedRole = sessionRaw ? JSON.parse(sessionRaw).role : null;
+const savedUser = sessionRaw ? JSON.parse(sessionRaw).username : 'Người dùng';
+const savedUserId = sessionRaw ? JSON.parse(sessionRaw).maId : 'NVKT01';
 const userRole = ref<Role>(savedRole || 'DocGia');
 const isSidebarOpen = ref<boolean>(true);
   

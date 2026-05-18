@@ -7,6 +7,8 @@ import { errorHandler } from './middleware/errorHandler';
 import bookRouter from './router/book';
 import readerRouter from './router/reader';
 import fineRouter from './router/fine';
+import staffRouter from './router/staff';
+import warehouseRouter from './router/warehouse';
 
 dotenv.config();
 
@@ -24,6 +26,9 @@ app.use('/api/auth', authRouter);
 app.use('/api/book', bookRouter);
 app.use('/api/reader', readerRouter);
 app.use('/api/fine', fineRouter);
+app.use('/api/staff', staffRouter);
+app.use('/api/warehouse', warehouseRouter);
+
 app.get('/', (req, res) => {
     res.send('🚀 Backend đang chạy!');
     });
