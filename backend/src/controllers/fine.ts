@@ -2,13 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import * as fineService from '../services/fine';
 import { AppError } from '../utils/appError';
 
-/**
- * API 1: Lấy danh sách tổng quan các độc giả dính nợ phạt
- * Endpoint: GET /api/accountant/fines
- */
 export const getAllFines = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
-        // Gác cổng phân quyền ở tầng Backend ứng dụng
         console.log('Thông tin người dùng từ Auth Middleware:', (req as any).user);
         if ((req as any).user?.role !== 'KeToan') {
             console.log(403);
@@ -23,10 +18,6 @@ export const getAllFines = async (req: Request, res: Response, next: NextFunctio
     }
 };
 
-/**
- * API 2: Xem chi tiết các đầu sách bị phạt của một độc giả cụ thể
- * Endpoint: GET /api/accountant/fines/:maDG
- */
 export const getFineDetail = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
         if ((req as any).user?.role !== 'KeToan') {
@@ -45,11 +36,7 @@ export const getFineDetail = async (req: Request, res: Response, next: NextFunct
     }
 };
 
-/**
- * API 3: Tiến hành thu tiền phạt và gạch nợ dưới DB
- * Endpoint: POST /api/accountant/collect-fine
- * Body: { maDG: 'DG001', soTienThu: 45000 }
- */
+
 export const processFinePayment = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
         if ((req as any).user?.role !== 'KeToan') {
@@ -61,14 +48,12 @@ export const processFinePayment = async (req: Request, res: Response, next: Next
             throw new AppError('Không tìm thấy danh tính Kế toán viên lập phiếu. Vui lòng đăng nhập lại!', 401);
         }
 
-        // 3. Lấy dữ liệu độc giả đóng tiền từ body
         const { maDG, soTienThu } = req.body;
 
         if (!maDG || soTienThu === undefined) {
             throw new AppError('Thiếu thông tin Mã Độc giả hoặc Số tiền thu!', 400);
         }
 
-        // 4. Thực thi nghiệp vụ nộp tiền kèm theo 3 tham số bắt buộc
         await fineService.collectFinePayment(maDG, Number(soTienThu), maNV_KeToan);
 
         return res.status(200).json({
@@ -78,7 +63,7 @@ export const processFinePayment = async (req: Request, res: Response, next: Next
         next(error);
     }
 };
-// POST /api/collect-fine/detail-item -> Xử lý nộp phạt lẻ từng cuốn sách
+
 export const processDetailItemPayment = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
         if ((req as any).user?.role !== 'KeToan') {
@@ -105,7 +90,7 @@ export const processDetailItemPayment = async (req: Request, res: Response, next
         next(error);
     }
 };
-// POST /api/fine/accountant/collect-fine -> Tất toán toàn bộ công nợ phạt
+
 export const collectAllFines = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
         if ((req as any).user?.role !== 'KeToan') {

@@ -96,9 +96,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import axios from 'axios'; // Hãy đảm bảo đã chạy: npm install axios
-
-// Khai báo Interface tương thích 100% với các cột thuộc tính của View v_Sach
+import axios from 'axios'; 
 interface Book {
   MaSach: string;
   TenSach: string;
@@ -115,15 +113,11 @@ const searchQuery = ref('');
 const isLoading = ref(false);
 const errorMessage = ref('');
 
-// --------------------------------------------------------------------------
-// HÀM GỌI API ĐỌC DỮ LIỆU TỪ BACKEND NODE.JS
-// --------------------------------------------------------------------------
 const loadLibraryData = async () => {
   isLoading.value = true;
   errorMessage.value = '';
 
   try {
-    // 1. Trích xuất Token từ chuỗi phiên session đã được lưu ở trang Login
     const sessionRaw = localStorage.getItem('user_session');
     if (!sessionRaw) {
       errorMessage.value = 'Hết hạn phiên làm việc bảo mật. Vui lòng quay lại đăng nhập!';
@@ -131,19 +125,15 @@ const loadLibraryData = async () => {
     }
     const session = JSON.parse(sessionRaw);
 
-    // 2. Gửi yêu cầu HTTP kèm mã Bearer Token phân hệ bảo mật lên máy chủ
-    // alert(session.token);
     const response = await axios.get('http://localhost:3000/api/book/reader', {
       headers: {
         Authorization: `Bearer ${session.token}`
       }
     });
 
-    // Gán dữ liệu mảng sạch nhận về từ SQL Server thông qua API
     books.value = response.data;
 
   } catch (error: any) {
-    // Trích xuất các lỗi bảo mật hoặc từ chối kết nối nếu có vi phạm
     if (error.response && error.response.data && error.response.data.message) {
       errorMessage.value = error.response.data.message;
     } else {
@@ -154,9 +144,7 @@ const loadLibraryData = async () => {
   }
 };
 
-// --------------------------------------------------------------------------
-// BỘ LỌC TÌM KIẾM ĐỘNG TRÊN TRÌNH DUYỆT (COMPUTED PROPERTY)
-// --------------------------------------------------------------------------
+
 const filteredBooks = computed(() => {
   return books.value.filter(book => {
     return (
@@ -166,7 +154,6 @@ const filteredBooks = computed(() => {
   });
 });
 
-// Tự động tải kho sách ngay khi màn hình vừa mở
 onMounted(() => {
   loadLibraryData();
 });

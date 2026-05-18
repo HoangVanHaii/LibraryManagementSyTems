@@ -100,7 +100,7 @@ export const deleteBookById = async (req: Request, res: Response, next: NextFunc
         next(error);
     }
 };
-// GET /api/warehouse/stats -> Trích xuất dữ liệu Dashboard kiểm kê kho
+
 export const getInventoryStatsDashboard = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
         if ((req as any).user?.role !== 'QuanLyKho') {

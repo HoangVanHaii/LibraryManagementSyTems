@@ -217,7 +217,7 @@ const detailBooks = ref<InventoryBook[]>([]);
 const isLoading = ref(true);
 const filterQuery = ref('');
 
-// 🚀 TRẠNG THÁI BIẾN ĐIỀU KHIỂN CUSTOM MODAL NHẬP HÀNG MỚI
+
 const isImportModalOpen = ref(false);
 const selectedBook = ref<InventoryBook | null>(null);
 const importQuantity = ref<number>(10);
@@ -253,10 +253,9 @@ const loadStatsData = async () => {
   } finally { isLoading.value = false; }
 };
 
-// 🚀 HÀM ĐIỀU HƯỚNG MỞ MODAL ĐỘNG
 const openImportModal = (book: InventoryBook) => {
   selectedBook.value = book;
-  importQuantity.value = 10; // Đặt mặc định gợi ý là nhập 10 cuốn
+  importQuantity.value = 10; 
   validationError.value = '';
   isImportModalOpen.value = true;
 };
@@ -271,11 +270,10 @@ const clearValidationError = () => {
   validationError.value = '';
 };
 
-// 🚀 NGHIỆP VỤ CHỐT SỔ: THỰC THI GỌI API KÈM KIỂM LỖI NỘI BỘ KHÔNG DÙNG ALERT
+
 const executeImportAPI = async () => {
   if (!selectedBook.value) return;
 
-  // 1. Kiểm tra Validation nội bộ ngay tại Client trước khi bắn request
   if (!importQuantity.value || isNaN(importQuantity.value) || importQuantity.value <= 0 || !Number.isInteger(importQuantity.value)) {
     validationError.value = 'Số lượng sách nhập kho bắt buộc phải là số nguyên dương lớn hơn 0!';
     return;
@@ -283,20 +281,15 @@ const executeImportAPI = async () => {
 
   isSubmitting.value = true;
   try {
-    // Gọi API nhập gộp số lượng tồn kho qua đường dẫn POST
     const response = await axios.post('http://localhost:3000/api/warehouse/import', {
       maSach: selectedBook.value.MaSach,
       soLuongNhap: importQuantity.value
     }, { headers: getAuthHeaders() });
 
-    // Đóng form và bắn thông báo thành công dạng Floating Toast
     isImportModalOpen.value = false;
     triggerToast(response.data.message, 'success');
-    
-    // Tải lại toàn bộ dữ liệu trang để cập nhật biểu đồ KPI tài sản và số lượng tồn!
     await loadStatsData();
   } catch (error: any) {
-    // Nếu vấp lỗi, hiển thị chuỗi lỗi từ RAISERROR tiếng Việt của DB lên chân Input thay vì văng Alert dữ dội
     validationError.value = error.response?.data?.message || 'Tiến trình nhập hàng thất bại từ hệ thống.';
   } finally {
     isSubmitting.value = false;

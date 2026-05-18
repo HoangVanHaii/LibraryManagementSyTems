@@ -259,15 +259,14 @@ const isLoading = ref(false);
 const isSubmitting = ref(false);
 const searchQuery = ref('');
 
-// Các biến reactive gác cổng các trạng thái Popups
 const isFormOpen = ref(false);
 const isEditMode = ref(false);
 const isConfirmOpen = ref(false);
-const isImportOpen = ref(false); // 🚀 Trạng thái đóng mở Phiếu nhập hàng
+const isImportOpen = ref(false); 
 
 const selectedBookId = ref('');
-const selectedImportBook = ref<Book | null>(null); // Lưu thông tin sách đang được chọn để cộng dồn kho
-const importQuantity = ref(10); // Số lượng cuốn sách nhập thêm mặc định gợi ý là 10
+const selectedImportBook = ref<Book | null>(null); 
+const importQuantity = ref(10); 
 
 const formModel = ref<Book>({
   MaSach: '', TenSach: '', TacGia: '', TheLoai: '', NhaXuatBan: '', NamXuatBan: 2026, GiaBia: 0, SoLuongTon: 0, ViTriKe: ''
@@ -286,11 +285,7 @@ const getAuthHeaders = () => {
   return { Authorization: `Bearer ${JSON.parse(sessionRaw).token}` };
 };
 
-// ==============================================================================
-// 🚀 HỆ THỐNG GIAO TIẾP API 3 TẦNG ĐÃ ĐƯỢC CHUẨN HÓA STORED PROCEDURE LÕI
-// ==============================================================================
 
-// API 1: Tải danh mục kho thông qua sp_Kho_LayDanhSachSach
 const loadBooksList = async () => {
   isLoading.value = true;
   try {
@@ -313,14 +308,14 @@ const openEditModal = (book: Book) => {
   isFormOpen.value = true;
 };
 
-// 🚀 KÍCH HOẠT: Bật mở modal phiếu tăng hàng cơ học hằng ngày
+
 const openImportModal = (book: Book) => {
   selectedImportBook.value = book;
   importQuantity.value = 10;
   isImportOpen.value = true;
 };
 
-// API 2 & 3: Xử lý Submit biểu mẫu Thêm danh mục mới / Sửa thông tin tài liệu cũ
+
 const submitBookForm = async () => {
   if (!formModel.value.MaSach || !formModel.value.TenSach) {
     triggerToast('Vui lòng hoàn thành các trường dữ liệu bắt buộc (*)', 'error');
@@ -345,7 +340,7 @@ const submitBookForm = async () => {
   } finally { isSubmitting.value = false; }
 };
 
-// 🚀 API 4: Thực thi luồng cộng dồn vật chất cơ học (GỌI API NHẬP HÀNG /import)
+
 const executeImportAPI = async () => {
   if (!selectedImportBook.value || importQuantity.value <= 0) {
     triggerToast('Số lượng nhập kho bổ sung phải lớn hơn 0!', 'error');
@@ -361,7 +356,7 @@ const executeImportAPI = async () => {
 
     triggerToast(response.data.message || 'Cập nhật tăng số lượng tồn kho thành công!');
     isImportOpen.value = false;
-    await loadBooksList(); // Nạp lại bảng để thấy con số cột Tồn kho nhảy tăng lên lập tức!
+    await loadBooksList(); 
   } catch (error: any) {
     triggerToast(error.response?.data?.message || 'Giao dịch nhập kho thất bại.', 'error');
   } finally { isSubmitting.value = false; }
@@ -372,7 +367,7 @@ const triggerDeleteDialog = (maSach: string) => {
   isConfirmOpen.value = true;
 };
 
-// API 5: Thực thi xóa và hứng trọn RAISERROR phản hồi từ SP sp_Kho_XoaSach
+
 const executeDeleteAPI = async () => {
   isConfirmOpen.value = false;
   try {
@@ -380,7 +375,7 @@ const executeDeleteAPI = async () => {
     triggerToast(response.data.message || 'Đã gạch tên đầu sách khỏi CSDL kho vật lý.');
     await loadBooksList();
   } catch (error: any) {
-    // Bắt trọn thông báo tiếng Việt cực kỳ minh bạch từ database quăng lên thông qua khối Controller
+    
     const serverMessage = error.response?.data?.message || 'Không thể thực thi lệnh xóa sách.';
     triggerToast(serverMessage, 'error');
   }

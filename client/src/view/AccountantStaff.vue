@@ -151,7 +151,6 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
-// Định nghĩa Interface cấu trúc dữ liệu Nhân viên giải mã nhận về từ Backend
 interface StaffSalary {
   MaNV: string;
   HoTen: string;
@@ -165,7 +164,6 @@ interface StaffSalary {
   PhuCap: number;
 }
 
-// Định nghĩa Interface cấu trúc dữ liệu Tổng quỹ lương thống kê
 interface SalaryPoolSummary {
   TongSoNhanVien: number;
   TongLuongCoBan: number;
@@ -183,7 +181,6 @@ const toast = ref({
   message: ''
 });
 
-// Hàm phát nổ Toast thông báo kiểm toán bảo mật mật mã
 const triggerToast = (msg: string) => {
   toast.value.show = true;
   toast.value.message = msg;
@@ -192,14 +189,13 @@ const triggerToast = (msg: string) => {
   }, 3500); // 3.5 giây tự đóng
 };
 
-// Trích xuất mã Token JWT hợp pháp lưu trong bộ nhớ trình duyệt của phiên đăng nhập
 const getAuthHeaders = () => {
   const sessionRaw = localStorage.getItem('user_session');
   if (!sessionRaw) return {};
   return { Authorization: `Bearer ${JSON.parse(sessionRaw).token}` };
 };
 
-// Thực thi triệu hồi đồng thời cả 2 API nạp bảng dữ liệu tổng quan và chi tiết (Tối ưu hóa hiệu năng mạng 🚀)
+
 const loadStaffPayrollData = async () => {
   isLoading.value = true;
   try {
@@ -220,7 +216,7 @@ const loadStaffPayrollData = async () => {
   }
 };
 
-// Bộ lọc tìm kiếm động (Client-side Search) hỗ trợ tra cứu nhanh theo ID hoặc Tên nhân viên
+
 const filteredStaffList = computed(() => {
   return staffList.value.filter(staff => {
     const query = searchQuery.value.toLowerCase().trim();

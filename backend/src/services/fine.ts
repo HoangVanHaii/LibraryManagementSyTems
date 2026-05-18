@@ -2,9 +2,6 @@ import sql from 'mssql';
 import { keToanPool } from '../configs/db'; 
 import { IFineReader, IFineBookDetail } from '../interfaces/fine';
 import { AppError } from '../utils/appError';
-// --------------------------------------------------------------------------
-// 1. SERVICE: LẤY DANH SÁCH CÔNG NỢ TỔNG QUAN (TỪ VIEW)
-// --------------------------------------------------------------------------
 export const getFinesList = async (): Promise<IFineReader[]> => {
     try {
         const result = await keToanPool.request()
@@ -22,9 +19,6 @@ export const getFinesList = async (): Promise<IFineReader[]> => {
     }
 };
 
-// --------------------------------------------------------------------------
-// 2. SERVICE: XEM CHI TIẾT SÁCH BỊ PHẠT CỦA 1 ĐỘC GIẢ (TỪ STORED PROCEDURE)
-// --------------------------------------------------------------------------
 export const getFineDetailByReader = async (maDG: string): Promise<IFineBookDetail[]> => {
     try {
         const result = await keToanPool.request()
@@ -39,9 +33,6 @@ export const getFineDetailByReader = async (maDG: string): Promise<IFineBookDeta
     }
 };
 
-// --------------------------------------------------------------------------
-// 3. SERVICE: TIẾN HÀNH THU PHẠT - TRỪ NỢ (TỪ STORED PROCEDURE GIỚI HẠN)
-// --------------------------------------------------------------------------
 export const collectFinePayment = async (maDG: string, soTienThu: number, maNVKeToan: string): Promise<void> => {
     try {
         await keToanPool.request()
@@ -56,7 +47,7 @@ export const collectFinePayment = async (maDG: string, soTienThu: number, maNVKe
         throw error;
     }
 };
-// Thực thi thanh toán phạt lẻ cho một đầu sách cụ thể trong chi tiết phiếu mượn
+
 export const collectDetailFinePayment = async (maPhieu: string, maSach: string, maNVKeToan: string): Promise<void> => {
     try {
         await keToanPool.request()
@@ -72,13 +63,13 @@ export const collectDetailFinePayment = async (maPhieu: string, maSach: string, 
         throw error;
     }
 };
-// Thực thi tất toán toàn bộ công nợ phạt của độc giả
+
 export const collectAllFinesPayment = async (maDG: string, maNVKeToan: string): Promise<void> => {
     try {
         await keToanPool.request()
             .input('MaDG', sql.VarChar(10), maDG)
             .input('MaNV_KeToan', sql.VarChar(10), maNVKeToan)
-            .execute('sp_KeToan_ThuTienPhatToanBo'); // Gọi đích danh SP xử lý gộp con trỏ
+            .execute('sp_KeToan_ThuTienPhatToanBo'); 
     } catch (error: any) {
         if (error.message) {
             throw new AppError(error.message, 400);

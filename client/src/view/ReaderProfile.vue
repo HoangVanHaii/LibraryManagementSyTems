@@ -118,7 +118,6 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
-// 1. Khai báo định dạng cấu trúc dữ liệu Profile khớp 100% với Service API
 interface ReaderProfile {
   MaDG: string;
   HoTen: string;
@@ -131,7 +130,6 @@ interface ReaderProfile {
   CongNo: number;
 }
 
-// Khởi tạo thực thể rỗng ban đầu tránh lỗi undefined khi chưa tải xong API
 const profile = ref<ReaderProfile>({
   MaDG: '',
   HoTen: '',
@@ -148,7 +146,6 @@ const isLoading = ref(false);
 const errorMessage = ref('');
 const successMessage = ref('');
 
-// 2. Hàm gọi API lấy hồ sơ giải mã từ lõi Database
 const loadReaderProfile = async () => {
   isLoading.value = true;
   errorMessage.value = '';
@@ -169,8 +166,6 @@ const loadReaderProfile = async () => {
 
     const data = response.data;
     
-    // [MẸO QUAN TRỌNG]: Thẻ <input type="date"> của HTML bắt buộc định dạng YYYY-MM-DD
-    // Vì vậy ta cần cắt chuỗi ISO string trả về từ API trước khi gán vào form
     if (data.NgaySinh) {
       data.NgaySinh = data.NgaySinh.substring(0, 10);
     }
@@ -188,13 +183,11 @@ const loadReaderProfile = async () => {
   }
 };
 
-// Hàm định dạng ngày tháng hiển thị thông thường
 const formatDate = (dateStr: string): string => {
   if (!dateStr) return '-';
   return new Date(dateStr).toLocaleDateString('vi-VN');
 };
 
-// Hàm tạo cảnh báo an toàn phân quyền
 const triggerDenyAlert = () => {
   alert('Thông báo phân hệ bảo mật: Độc giả không được tự ý sửa đổi hồ sơ thông tin định danh cốt lõi. Vui lòng mang CCCD gốc tới quầy Thủ thư để cập nhật và ký biên bản xác minh!');
 };

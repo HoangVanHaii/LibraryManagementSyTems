@@ -139,7 +139,7 @@ interface BorrowHistory {
   HanTra: string;
   NgayTraThucTe: string | null;
   TinhTrangKhiTra: string | null;
-  TienPhatKyNay: number; // Đón nhận giá trị phạt động từ v_LichSuMuon
+  TienPhatKyNay: number; 
 }
 
 const borrowedHistory = ref<BorrowHistory[]>([]);
@@ -155,7 +155,6 @@ const getAuthHeaders = () => {
   return { Authorization: `Bearer ${session.token}` };
 };
 
-// API 1: Tải lịch sử chi tiết từ sp_DocGia_XemLichSuMuon
 const loadBorrowHistory = async () => {
   try {
     const response = await axios.get('http://localhost:3000/api/reader/history', { headers: getAuthHeaders() });
@@ -165,11 +164,10 @@ const loadBorrowHistory = async () => {
   }
 };
 
-// API 2: Tải tổng nợ phạt real-time từ sp_DocGia_LayTongNoPhat
 const loadDashboardStats = async () => {
   try {
     const response = await axios.get('http://localhost:3000/api/reader/dashboard-stats', { headers: getAuthHeaders() });
-    // Đồng bộ khớp với cấu trúc gộp dữ liệu từ Controller Backend của nhóm bạn
+
     totalBorrowed.value = response.data.SoSachDangMuon || 0;
     totalDebt.value = response.data.TongTienPhat || 0;
   } catch (error: any) {
@@ -189,13 +187,11 @@ const initPageData = async () => {
   }
 };
 
-// Hàm nội bộ kiểm tra trạng thái quá hạn
 const isOverdueLogic = (book: BorrowHistory): boolean => {
   if (book.NgayTraThucTe) return false;
   return new Date(book.HanTra) < new Date();
 };
 
-// Hàm bóc chuỗi nhãn văn bản trạng thái hiển thị
 const getStatusText = (book: BorrowHistory): string => {
   if (book.NgayTraThucTe) {
     return book.TienPhatKyNay > 0 ? 'Đã trả (Có phạt)' : 'Đã hoàn trả';
@@ -203,7 +199,6 @@ const getStatusText = (book: BorrowHistory): string => {
   return isOverdueLogic(book) ? 'Quá hạn trả' : 'Đang mượn';
 };
 
-// Hàm kết xuất Class CSS màu sắc tương thích nhãn trạng thái
 const getStatusClass = (book: BorrowHistory): string => {
   if (book.NgayTraThucTe) {
     return book.TienPhatKyNay > 0 

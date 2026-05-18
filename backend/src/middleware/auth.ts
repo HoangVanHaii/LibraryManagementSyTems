@@ -9,6 +9,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
             throw new AppError('Chưa cung cấp token', 401);
         }
         const token = authHeader.split(' ')[1];
+         console.log('Token nhận được từ client:', token); 
         const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
         req.user = {
             id: decoded.maId,
@@ -17,6 +18,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
         };
         next();
     } catch (error) {
+        console.error('Lỗi xác thực token:', error); 
         if (error instanceof jwt.TokenExpiredError) {
             return res.status(401).json({ message: 'Token đã hết hạn' });
         } else if (error instanceof jwt.JsonWebTokenError) {

@@ -257,7 +257,7 @@ interface FineBookDetail {
   HanTra: string;
   NgayTraThucTe: string | null;
   TienPhatKyNay: number;
-  ChoPhepThanhToan: number; // 🚀 Nạp thêm trường trạng thái khóa từ SP mới
+  ChoPhepThanhToan: number; 
   LyDoPhat: string;
 }
 
@@ -291,7 +291,6 @@ const getAuthHeaders = () => {
   return { Authorization: `Bearer ${JSON.parse(sessionRaw).token}` };
 };
 
-// API 1: Tải danh mục tổng quan nợ (Đã đổi sang nạp VIEW tính toán động)
 const loadFineReadersList = async () => {
   isLoading.value = true;
   try {
@@ -304,14 +303,12 @@ const loadFineReadersList = async () => {
   }
 };
 
-// API 2: Tải chi tiết lỗi phạt lẻ của độc giả được chọn
 const openPaymentModal = async (reader: FineReader) => {
   selectedReader.value = reader;
   isModalLoading.value = true;
   fineDetails.value = [];
   
   try {
-    // Gọi tuyến API nạp chi tiết các đầu sách dính phạt
     const response = await axios.get(`http://localhost:3000/api/fine/accountant/fines/${reader.MaDG}`, { headers: getAuthHeaders() });
     fineDetails.value = response.data;
   } catch (error: any) {
@@ -322,7 +319,6 @@ const openPaymentModal = async (reader: FineReader) => {
   }
 };
 
-// 🚀 NGHIỆP VỤ MỚI: HÀM THỰC THI THANH TOÁN LẺ CHO 1 ĐẦU SÁCH ĐÃ TRẢ
 const paySingleBookFine = async (item: FineBookDetail) => {
   isCollecting.value = true;
   try {
@@ -333,21 +329,16 @@ const paySingleBookFine = async (item: FineBookDetail) => {
     console.log("thành công ",response.data);
     triggerToast(response.data.message, 'success');
     
-    // Tải lại danh sách nợ thô bên ngoài để cập nhật lại số tiền nợ tổng của hồ sơ độc giả
     await loadFineReadersList();
 
     if (selectedReader.value) {
-      // Tìm kiếm xem độc giả này có còn dư nợ phạt trên bảng tổng không
       const checkReaderStillOwes = fineReaders.value.find(r => r.MaDG === selectedReader.value?.MaDG);
       
       if (checkReaderStillOwes) {
-        // Nếu còn dính nợ của các cuốn sách khác, cập nhật lại số tiền tổng nợ trên modal hiển thị
         selectedReader.value.CongNo = checkReaderStillOwes.CongNo;
-        // Đồng thời tải lại danh sách phạt chi tiết để cuốn sách vừa thanh toán biến mất khỏi bảng
         const refreshDetails = await axios.get(`http://localhost:3000/api/fine/accountant/fines/${selectedReader.value.MaDG}`, { headers: getAuthHeaders() });
         fineDetails.value = refreshDetails.data;
       } else {
-        // Độc giả đã tất toán sạch nợ -> Tự động đóng modal hóa đơn chính
         selectedReader.value = null;
       }
     }
@@ -359,7 +350,6 @@ const paySingleBookFine = async (item: FineBookDetail) => {
   }
 };
 
-// API 3: Thực thi nộp tiền toàn bộ sau khi đã qua hộp thoại Custom Confirm
 const executePaymentAPI = async () => {
   if (!selectedReader.value) return;
 
@@ -382,10 +372,8 @@ const executePaymentAPI = async () => {
   }
 };
 
-// 🚀 THUẬT TOÁN ĐÁNH GIÁ CHỐT PHIẾU: Kiểm tra toàn bộ sách phạt trong danh sách đã được trả chưa
 const canPayAll = computed(() => {
   if (fineDetails.value.length === 0) return false;
-  // Trả về true nếu tất cả các phần tử con đều sở hữu thuộc tính ChoPhepThanhToan === 1
   return fineDetails.value.every(item => item.ChoPhepThanhToan === 1);
 });
 

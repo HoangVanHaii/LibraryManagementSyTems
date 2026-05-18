@@ -1,6 +1,5 @@
 import { body } from 'express-validator';
 
-// Luật xác thực khi tạo mới Độc giả và Tài khoản
 export const validateCreateReaderRules = [
     body("maDG")
         .notEmpty().withMessage("Mã Độc giả là bắt buộc"),
@@ -29,7 +28,6 @@ export const validateCreateReaderRules = [
         .isDate({ format: 'YYYY-MM-DD' }).withMessage("Ngày sinh phải có định dạng YYYY-MM-DD")
 ];
 
-// Luật xác thực khi Lập phiếu mượn sách
 export const validateBorrowRules = [
     body("maPhieu")
         .notEmpty().withMessage("Mã phiếu mượn bắt buộc phải điền"),
@@ -45,7 +43,6 @@ export const validateBorrowRules = [
         .isInt({ min: 1, max: 30 }).withMessage("Số ngày mượn sách nằm trong khoảng hợp lệ từ 1 đến 30 ngày")
 ];
 
-// Luật xác thực khi Ghi nhận trả sách
 export const validateReturnRules = [
     body("maPhieu")
         .notEmpty().withMessage("Mã phiếu mượn trả sách bắt buộc phải điền"),
@@ -58,7 +55,6 @@ export const validateReturnRules = [
         .isIn(['Bình thường', 'Hỏng nhẹ', 'Hỏng nặng', 'Mất']).withMessage("Tình trạng sách trả không nằm trong danh mục kiểm duyệt")
 ];
 
-// Luật xác thực khi Gia hạn thẻ Độc giả
 export const validateRenewRules = [
     body("maDG")
         .notEmpty().withMessage("Mã Độc giả cần gia hạn thẻ là bắt buộc"),
