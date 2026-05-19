@@ -89,8 +89,7 @@
           <thead class="bg-white text-gray-900 border-b font-semibold">
             <tr>
               <th scope="col" class="py-3 px-4 pl-6">Mã Sách</th>
-              <th scope="col" class="py-3 px-4">Thông tin đầu sách</th>
-              <th scope="col" class="py-3 px-4 text-center">Tồn vật lý</th>
+              <th scope="col" class="py-3 px-4 w-1/3">Thông tin & Bìa sách</th> <th scope="col" class="py-3 px-4 text-center">Tồn vật lý</th>
               <th scope="col" class="py-3 px-4 text-center">Đang mượn (Xuất)</th>
               <th scope="col" class="py-3 px-4 text-center">Tổng lượt mượn</th>
               <th scope="col" class="py-3 px-4 text-center">Trạng thái tồn</th>
@@ -100,10 +99,21 @@
           <tbody class="divide-y divide-gray-200 bg-white font-medium text-gray-600">
             <tr v-for="book in filteredBooks" :key="book.MaSach" class="hover:bg-gray-50 transition-colors">
               <td class="py-3.5 px-4 pl-6 font-mono font-bold text-gray-900">{{ book.MaSach }}</td>
+              
               <td class="py-3.5 px-4">
-                <div class="font-bold text-gray-900">{{ book.TenSach }}</div>
-                <div class="text-[10px] text-gray-400">Tác giả: {{ book.TacGia }} | Giá bìa: {{ book.GiaBia.toLocaleString('vi-VN') }}đ</div>
+                <div class="flex items-center space-x-3">
+                  <img 
+                    :src="book.HinhAnh || 'https://via.placeholder.com/150x200?text=No+Cover'" 
+                    class="w-8 h-12 object-cover rounded border border-gray-200 shadow-sm flex-shrink-0 bg-gray-100" 
+                    alt="Bìa"
+                  >
+                  <div class="truncate">
+                    <div class="font-bold text-gray-900 truncate" :title="book.TenSach">{{ book.TenSach }}</div>
+                    <div class="text-[10px] text-gray-400 truncate">Tác giả: {{ book.TacGia }} | Giá bìa: {{ book.GiaBia.toLocaleString('vi-VN') }}đ</div>
+                  </div>
+                </div>
               </td>
+
               <td class="py-3.5 px-4 text-center font-bold text-blue-600 font-mono">{{ book.SoLuongTon }}</td>
               <td class="py-3.5 px-4 text-center font-bold text-amber-600 font-mono">{{ book.SoLuongDangMuon }}</td>
               <td class="py-3.5 px-4 text-center font-bold text-gray-500 font-mono">{{ book.TongLuotMuon }}</td>
@@ -141,10 +151,13 @@
         </div>
 
         <div class="p-5 space-y-4">
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-xs">
-            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Đầu sách kiểm kê</span>
-            <p class="font-bold text-gray-900 mt-0.5 truncate">{{ selectedBook.TenSach }}</p>
-            <p class="text-[11px] text-gray-500 font-mono mt-0.5">Mã: {{ selectedBook.MaSach }} | Tồn hiện tại: <span class="font-bold text-blue-600">{{ selectedBook.SoLuongTon }}</span></p>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center space-x-3">
+            <img :src="selectedBook.HinhAnh || 'https://via.placeholder.com/150x200?text=No+Cover'" class="w-10 h-14 object-cover rounded border shadow-sm bg-gray-200" alt="Bìa">
+            <div class="flex-1 min-w-0">
+              <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mb-0.5">Đầu sách kiểm kê</span>
+              <p class="font-bold text-gray-900 text-xs truncate">{{ selectedBook.TenSach }}</p>
+              <p class="text-[11px] text-gray-500 font-mono mt-0.5">Mã: {{ selectedBook.MaSach }} | Tồn: <span class="font-bold text-blue-600">{{ selectedBook.SoLuongTon }}</span></p>
+            </div>
           </div>
 
           <div class="space-y-1.5">
@@ -201,6 +214,7 @@ interface KPIData {
   TongGiaTriKho: number;
 }
 
+// BỔ SUNG TRƯỜNG HINHANH VÀO INTERFACE ĐỂ TYPESCRIPT KHÔNG BÁO LỖI
 interface InventoryBook {
   MaSach: string;
   TenSach: string;
@@ -210,13 +224,13 @@ interface InventoryBook {
   SoLuongDangMuon: number;
   TongLuotMuon: number;
   TrangThaiTonKho: string;
+  HinhAnh?: string; 
 }
 
 const kpiData = ref<KPIData | null>(null);
 const detailBooks = ref<InventoryBook[]>([]);
 const isLoading = ref(true);
 const filterQuery = ref('');
-
 
 const isImportModalOpen = ref(false);
 const selectedBook = ref<InventoryBook | null>(null);
@@ -269,7 +283,6 @@ const closeImportModal = () => {
 const clearValidationError = () => {
   validationError.value = '';
 };
-
 
 const executeImportAPI = async () => {
   if (!selectedBook.value) return;

@@ -39,15 +39,18 @@
       <div 
         v-for="book in filteredBooks" 
         :key="book.MaSach" 
-        class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col overflow-hidden group"
+        class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-lg transition-all flex flex-col overflow-hidden group"
       >
-        <div class="h-40 bg-gray-50 flex flex-col items-center justify-center border-b border-gray-200 relative">
-          <span class="absolute top-3 left-3 font-mono text-[10px] font-bold text-gray-400 bg-white px-2 py-0.5 rounded border border-gray-100">
+        <div class="h-56 bg-gray-100 flex flex-col items-center justify-center border-b border-gray-200 relative overflow-hidden">
+          <span class="absolute top-3 left-3 font-mono text-[10px] font-bold text-gray-600 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded border border-gray-200 shadow-sm z-10">
             ID: {{ book.MaSach }}
           </span>
-          <svg class="w-10 h-10 text-gray-300 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-          </svg>
+          
+          <img 
+            :src="book.HinhAnh || 'https://via.placeholder.com/300x400?text=No+Cover'" 
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            :alt="book.TenSach"
+          >
         </div>
         
         <div class="p-5 flex-1 flex flex-col">
@@ -63,7 +66,7 @@
             </span>
           </div>
           
-          <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-1 min-h-[3rem] leading-snug">
+          <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-1 min-h-[3rem] leading-snug" :title="book.TenSach">
             {{ book.TenSach }}
           </h3>
           <p class="text-xs font-semibold text-gray-500 mb-3">{{ book.TacGia }}</p>
@@ -71,7 +74,7 @@
           <div class="border-t border-gray-100 pt-3 mt-1 mb-4 space-y-1 text-[11px] font-medium text-gray-400">
             <div class="flex justify-between">
               <span>Nhà xuất bản:</span>
-              <span class="text-gray-600 font-semibold">{{ book.NhaXuatBan || 'N/A' }}</span>
+              <span class="text-gray-600 font-semibold truncate ml-2" :title="book.NhaXuatBan">{{ book.NhaXuatBan || 'N/A' }}</span>
             </div>
             <div class="flex justify-between">
               <span>Năm xuất bản:</span>
@@ -97,6 +100,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios'; 
+
+// KHAI BÁO THÊM TRƯỜNG HINHANH VÀO INTERFACE
 interface Book {
   MaSach: string;
   TenSach: string;
@@ -106,6 +111,7 @@ interface Book {
   NamXuatBan: number;
   SoLuongTon: number;
   ViTriKe: string;
+  HinhAnh?: string; // <=== Bổ sung chỗ này
 }
 
 const books = ref<Book[]>([]);
@@ -143,7 +149,6 @@ const loadLibraryData = async () => {
     isLoading.value = false;
   }
 };
-
 
 const filteredBooks = computed(() => {
   return books.value.filter(book => {

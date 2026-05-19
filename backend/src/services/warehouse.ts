@@ -1,11 +1,11 @@
 import sql from 'mssql';
-import { khoPool } from '../configs/db'; 
+import { khoPool,getPoolByRole } from '../configs/db'; 
 import { IBookInventory, IBookInput } from '../interfaces/warehouse';
 import { AppError } from '../utils/appError';
 
-export const getBooksInventory = async (): Promise<IBookInventory[]> => {
+export const getBooksInventory = async (role:string): Promise<IBookInventory[]> => {
     try {
-        const result = await khoPool.request().execute('sp_Kho_LayDanhSachSach');
+        const result = await getPoolByRole(role).request().execute('sp_Kho_LayDanhSachSach');
         return result.recordset as IBookInventory[];
     } catch (error: any) {
         if (error.message) {

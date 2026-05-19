@@ -104,8 +104,7 @@
             <tr>
               <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Mã Phiếu</th>
               <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Độc giả</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tên Sách</th>
-              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Hạn Trả</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-1/3">Thông tin & Bìa sách</th> <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Hạn Trả</th>
               <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Thao tác</th>
             </tr>
           </thead>
@@ -116,10 +115,21 @@
                 <span class="font-bold">{{ tx.TenDocGia }}</span> <br>
                 <span class="text-xs text-gray-500 font-mono">{{ tx.MaDG }}</span>
               </td>
+              
               <td class="px-3 py-4 text-sm text-gray-700">
-                <span class="truncate block max-w-xs font-semibold" :title="tx.TenSach">{{ tx.TenSach }}</span>
-                <span class="text-xs text-gray-500 font-mono">{{ tx.MaSach }}</span>
+                <div class="flex items-center space-x-3">
+                  <img 
+                    :src="tx.HinhAnh || 'https://via.placeholder.com/150x200?text=No+Cover'" 
+                    class="w-10 h-14 object-cover rounded shadow-sm border border-gray-200 bg-gray-100 flex-shrink-0" 
+                    alt="Bìa sách"
+                  >
+                  <div class="truncate">
+                    <span class="truncate block font-semibold text-gray-900" :title="tx.TenSach">{{ tx.TenSach }}</span>
+                    <span class="text-xs text-gray-500 font-mono">Mã: {{ tx.MaSach }}</span>
+                  </div>
+                </div>
               </td>
+
               <td class="px-3 py-4 text-sm">
                 <span :class="isOverdue(tx.HanTra) && !tx.NgayTraThucTe ? 'text-red-600 font-bold' : 'text-gray-900'">
                   {{ formatDate(tx.HanTra) }}
@@ -153,11 +163,19 @@
       <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border">
         <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Xác nhận trả sách</h3>
         
-        <div class="space-y-3 text-sm text-gray-700 mb-6 bg-gray-50 p-3 rounded-lg border">
-          <p>Mã phiếu: <span class="font-mono font-bold">{{ selectedReturn.MaPhieu }}</span></p>
-          <p>Tên sách: <span class="font-semibold">{{ selectedReturn.TenSach }}</span></p>
-          <p>Độc giả: <span class="font-semibold">{{ selectedReturn.TenDocGia }}</span></p>
-          <p v-if="isOverdue(selectedReturn.HanTra)" class="text-red-600 font-bold">⚠️ Sách này đã nộp trễ hạn!</p>
+        <div class="space-y-3 text-sm text-gray-700 mb-6 bg-gray-50 p-3 rounded-lg border flex items-start space-x-4">
+          <img 
+            :src="selectedReturn.HinhAnh || 'https://via.placeholder.com/150x200?text=No+Cover'" 
+            class="w-16 h-24 object-cover rounded shadow border border-gray-300 bg-gray-100 flex-shrink-0" 
+            alt="Bìa sách"
+          >
+          <div class="flex-1">
+            <p class="text-xs text-gray-500 mb-1">Mã phiếu: <span class="font-mono font-bold text-gray-800">{{ selectedReturn.MaPhieu }}</span></p>
+            <p class="font-bold text-gray-900 leading-tight mb-1">{{ selectedReturn.TenSach }}</p>
+            <p class="text-xs text-gray-600 mb-2">Mã sách: <span class="font-mono">{{ selectedReturn.MaSach }}</span></p>
+            <p class="text-xs text-gray-600">Độc giả: <span class="font-bold text-blue-700">{{ selectedReturn.TenDocGia }}</span></p>
+            <p v-if="isOverdue(selectedReturn.HanTra)" class="text-red-600 font-bold mt-2">⚠️ Sách này đã nộp trễ hạn!</p>
+          </div>
         </div>
 
         <div class="mb-6">
@@ -249,6 +267,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
+// 1. CẬP NHẬT INTERFACE: THÊM TRƯỜNG HINHANH VÀO ĐÂY
 interface Transaction {
   MaPhieu: string;
   MaDG: string;
@@ -257,6 +276,7 @@ interface Transaction {
   TenSach: string;
   HanTra: string;
   NgayTraThucTe: string | null;
+  HinhAnh?: string; // <=== BỔ SUNG TRƯỜNG NÀY ĐỂ TYPESCRIPT KHÔNG KÊU LỖI
 }
 
 const transactions = ref<Transaction[]>([]);
