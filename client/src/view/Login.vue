@@ -138,7 +138,7 @@ const handleLogin = async () => {
       username: user.username,
       maId: user.maId
     }));
-    alert(user.role);
+    // alert(user.role);
     let targetPath = '/';
     const userRole = user.role;
 

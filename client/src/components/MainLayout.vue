@@ -163,6 +163,7 @@
             </svg>
             <span v-if="isSidebarOpen" class="ml-3 whitespace-nowrap">Thống kê Nhập/Xuất</span>
           </router-link>
+          
           <router-link 
             to="/inventory/alerts" 
             class="flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors group" 
@@ -219,12 +220,27 @@
             class="flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors group"
             active-class="bg-blue-50 text-blue-700 font-bold border-l-4 border-blue-600"
           >
-            <svg class="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14" />
+            <svg class="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14" />
             </svg>
             <span v-if="isSidebarOpen" class="ml-3 whitespace-nowrap">Báo cáo chiến lược</span>
           </router-link>
+        </template>
 
+        <template v-if="userRole !== 'DocGia'">
+          <div class="pt-4 mt-4 border-t border-gray-200">
+            <router-link 
+              to="/staff/profile" 
+              class="flex items-center px-3 py-3 text-sm font-medium rounded-lg text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors group" 
+              :title="!isSidebarOpen ? 'Hồ sơ cá nhân' : ''"
+              active-class="bg-emerald-50 text-emerald-700 font-bold border-l-4 border-emerald-600"
+            >
+              <svg class="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              </svg>
+              <span v-if="isSidebarOpen" class="ml-3 whitespace-nowrap">Hồ sơ Nhân viên</span>
+            </router-link>
+          </div>
         </template>
 
       </nav>
