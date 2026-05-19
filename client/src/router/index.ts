@@ -18,6 +18,7 @@ import ReaderHomeView from '../view/ReaderHome.vue'
 import InventoryStat from '../view/InventoryStat.vue'
 import InventoryAlert from '../view/InventoryAlert.vue'
 import LoginHistory from '../view/DirectorLoginHistory.vue'
+import StaffProfile from '../view/StaffProfile.vue'
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
@@ -49,7 +50,8 @@ const router = createRouter({
                 { path: 'reader/home', name: 'reader-home', component: ReaderHomeView },
                 { path: 'inventory/statistics', name: 'inventory-statistics', component: InventoryStat },
                 { path: 'inventory/alerts', name: 'inventory-alerts', component: InventoryAlert },
-                { path: 'director/login-history', name: 'director-login-history', component: LoginHistory }
+                { path: 'director/login-history', name: 'director-login-history', component: LoginHistory },
+                { path: 'staff/profile', name: 'staff-profile', component: StaffProfile }
             ]
         }
     ]

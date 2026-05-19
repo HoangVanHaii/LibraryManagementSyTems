@@ -27,3 +27,33 @@ export const getLibrarySalaryPool = async (req: Request, res: Response, next: Ne
         next(error);
     }
 };
+
+export const getMyProfile = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    try {
+        const maNV = (req as any).user?.id;
+        const role = (req as any).user?.role;
+        if (!maNV) {
+            throw new AppError('Từ chối truy cập: Không tìm thấy định danh nhân viên!', 401);
+        }
+        const profileData = await staffService.getStaffProfile(maNV, role);
+        return res.status(200).json(profileData);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updateMyProfile = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    try {
+        const maNV = (req as any).user?.id;
+        const role = (req as any).user?.role;
+        if (!maNV) {
+            throw new AppError('Từ chối truy cập: Không tìm thấy định danh nhân viên!', 401);
+        }
+
+        const { sdt, email, diaChi } = req.body;
+        const result = await staffService.updateStaffProfile(maNV, role, sdt, email, diaChi);
+        return res.status(200).json(result);
+    } catch (error) {
+        next(error);
+    }
+};
