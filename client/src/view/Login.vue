@@ -88,16 +88,7 @@
         </button>
       </form>
 
-      <div class="mt-12">
-        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Tài khoản Demo thực tế (Click để thử)</p>
-        <div class="flex flex-wrap gap-2">
-          <button @click="fillData('haidocgia')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-colors">Độc Giả (Hải)</button>
-          <button @click="fillData('thuthu_01')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-emerald-100 hover:text-emerald-700 transition-colors">Thủ Thư</button>
-          <button @click="fillData('kho_01')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-orange-100 hover:text-orange-700 transition-colors">Thủ Kho</button>
-          <button @click="fillData('ketoan_01')" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-purple-100 hover:text-purple-700 transition-colors">Kế Toán</button>
-          <button @click="fillData('admin_giamdoc')" class="px-3 py-1.5 bg-slate-900 text-white text-[10px] font-bold rounded-lg hover:bg-black transition-colors">Giám Đốc</button>
-        </div>
-      </div>
+      
     </div>
   </div>
 </template>
