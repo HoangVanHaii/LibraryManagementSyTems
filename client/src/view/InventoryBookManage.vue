@@ -74,7 +74,7 @@
           <thead class="bg-white">
             <tr>
               <th scope="col" class="py-3.5 pl-6 pr-3 font-semibold text-gray-900">Mã Sách</th>
-              <th scope="col" class="px-3 py-3.5 font-semibold text-gray-900">Tên Sách & Thông Tin Bản Quyền</th>
+              <th scope="col" class="px-3 py-3.5 font-semibold text-gray-900 w-1/3">Tên Sách & Bìa Thu Nhỏ</th>
               <th scope="col" class="px-3 py-3.5 font-semibold text-gray-900">Thể Loại</th>
               <th scope="col" class="px-3 py-3.5 text-right font-semibold text-gray-900">Giá Bìa (VNĐ)</th>
               <th scope="col" class="px-3 py-3.5 text-center font-semibold text-gray-900">Tồn Kho</th>
@@ -85,10 +85,19 @@
           <tbody class="bg-white divide-y divide-gray-200">
             <tr v-for="book in filteredBooks" :key="book.MaSach" class="hover:bg-gray-50 transition-colors">
               <td class="py-4 pl-6 pr-3 font-mono font-bold text-gray-900 whitespace-nowrap">{{ book.MaSach }}</td>
-              <td class="px-3 py-4 text-gray-700">
-                <span class="font-bold text-gray-900 block text-sm">{{ book.TenSach }}</span>
-                <span class="text-xs text-gray-400 font-medium block">TG: {{ book.TacGia }} | NXB {{ book.NhaXuatBan }} ({{ book.NamXuatBan }})</span>
+              
+              <td class="px-3 py-4 text-gray-700 flex items-center space-x-3">
+                <img 
+                  :src="book.HinhAnh || 'https://via.placeholder.com/150x200?text=No+Cover'" 
+                  class="w-10 h-14 object-cover rounded border shadow-sm flex-shrink-0 bg-gray-100" 
+                  alt="Bìa sách"
+                >
+                <div class="truncate">
+                  <span class="font-bold text-gray-900 block text-sm truncate" :title="book.TenSach">{{ book.TenSach }}</span>
+                  <span class="text-xs text-gray-400 font-medium block truncate">TG: {{ book.TacGia }} | NXB {{ book.NhaXuatBan }} ({{ book.NamXuatBan }})</span>
+                </div>
               </td>
+
               <td class="px-3 py-4 whitespace-nowrap text-xs text-gray-600 font-semibold">
                 {{ book.TheLoai || 'Chưa phân loại' }}
               </td>
@@ -120,55 +129,75 @@
     </div>
 
     <div v-if="isFormOpen" class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm transition-opacity">
-      <div class="bg-white rounded-xl shadow-2xl w-full max-w-xl border overflow-hidden">
+      <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl border overflow-hidden">
         <div class="bg-slate-900 px-6 py-4 text-white flex justify-between items-center">
           <h3 class="text-base font-bold">{{ isEditMode ? 'Cập nhật tài liệu sách' : 'Khai báo cấu trúc sách mới mua' }}</h3>
           <button @click="isFormOpen = false" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
         </div>
 
-        <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto text-xs">
-          <div>
-            <label class="block font-bold text-gray-500 uppercase mb-1">Mã Sách *</label>
-            <input type="text" v-model="formModel.MaSach" :disabled="isEditMode" class="block w-full p-2.5 border rounded-lg font-mono font-bold uppercase outline-none focus:border-blue-500 disabled:bg-gray-100" placeholder="Ví dụ: S001">
+        <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 max-h-[70vh] overflow-y-auto text-xs">
+          
+          <div class="md:col-span-1 flex flex-col items-center space-y-3">
+            <div class="w-full aspect-[3/4] border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center relative">
+              <img v-if="imagePreview || formModel.HinhAnh" :src="imagePreview || formModel.HinhAnh" class="w-full h-full object-cover" alt="Preview">
+              <div v-else class="text-center p-4 text-gray-400">
+                <svg class="mx-auto h-12 w-12 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <span>Chưa có ảnh bìa</span>
+              </div>
+            </div>
+            <div class="w-full">
+              <label class="block text-center cursor-pointer bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold py-2 rounded-lg border border-blue-200 transition-colors">
+                Tải ảnh bìa lên
+                <input type="file" accept="image/*" class="hidden" @change="handleFileSelect">
+              </label>
+              <p v-if="selectedFile" class="text-center mt-2 text-emerald-600 font-bold text-[10px] truncate">Đã chọn: {{ selectedFile.name }}</p>
+            </div>
           </div>
-          <div>
-            <label class="block font-bold text-gray-500 uppercase mb-1">Tên Đầu Sách *</label>
-            <input type="text" v-model="formModel.TenSach" class="block w-full p-2.5 border rounded-lg font-bold outline-none focus:border-blue-500" placeholder="Nhập tên sách...">
-          </div>
-          <div>
-            <label class="block font-bold text-gray-500 uppercase mb-1">Tác Giả</label>
-            <input type="text" v-model="formModel.TacGia" class="block w-full p-2.5 border rounded-lg outline-none focus:border-blue-500">
-          </div>
-          <div>
-            <label class="block font-bold text-gray-500 uppercase mb-1">Thể Loại</label>
-            <input type="text" v-model="formModel.TheLoai" class="block w-full p-2.5 border rounded-lg outline-none focus:border-blue-500" placeholder="Kinh tế, CNTT...">
-          </div>
-          <div>
-            <label class="block font-bold text-gray-500 uppercase mb-1">Nhà Xuất Bản</label>
-            <input type="text" v-model="formModel.NhaXuatBan" class="block w-full p-2.5 border rounded-lg outline-none focus:border-blue-500">
-          </div>
-          <div>
-            <label class="block font-bold text-gray-500 uppercase mb-1">Năm Xuất Bản</label>
-            <input type="number" v-model.number="formModel.NamXuatBan" class="block w-full p-2.5 border rounded-lg outline-none focus:border-blue-500">
-          </div>
-          <div>
-            <label class="block font-bold text-gray-500 uppercase mb-1">Giá Bìa Hệ Thống (VNĐ)</label>
-            <input type="number" v-model.number="formModel.GiaBia" class="block w-full p-2.5 border rounded-lg font-mono font-bold text-blue-700 outline-none focus:border-blue-500">
-          </div>
-          <div>
-            <label class="block font-bold text-gray-500 uppercase mb-1">Số Tồn Kho Khởi Tạo</label>
-            <input type="number" v-model.number="formModel.SoLuongTon" :disabled="isEditMode" class="block w-full p-2.5 border rounded-lg font-bold确 outline-none focus:border-blue-500 disabled:bg-gray-100">
-          </div>
-          <div class="sm:col-span-2">
-            <label class="block font-bold text-gray-500 uppercase mb-1">Vị Trí Xếp Kệ Kho *</label>
-            <input type="text" v-model="formModel.ViTriKe" class="block w-full p-2.5 border rounded-lg font-bold outline-none focus:border-blue-500" placeholder="Ví dụ: Khu A - Kệ 01">
+
+          <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block font-bold text-gray-500 uppercase mb-1">Mã Sách *</label>
+              <input type="text" v-model="formModel.MaSach" :disabled="isEditMode" class="block w-full p-2.5 border rounded-lg font-mono font-bold uppercase outline-none focus:border-blue-500 disabled:bg-gray-100" placeholder="Ví dụ: S001">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-gray-500 uppercase mb-1">Tên Đầu Sách *</label>
+              <input type="text" v-model="formModel.TenSach" class="block w-full p-2.5 border rounded-lg font-bold outline-none focus:border-blue-500" placeholder="Nhập tên sách...">
+            </div>
+            <div>
+              <label class="block font-bold text-gray-500 uppercase mb-1">Tác Giả</label>
+              <input type="text" v-model="formModel.TacGia" class="block w-full p-2.5 border rounded-lg outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block font-bold text-gray-500 uppercase mb-1">Thể Loại</label>
+              <input type="text" v-model="formModel.TheLoai" class="block w-full p-2.5 border rounded-lg outline-none focus:border-blue-500" placeholder="Kinh tế, CNTT...">
+            </div>
+            <div>
+              <label class="block font-bold text-gray-500 uppercase mb-1">Nhà Xuất Bản</label>
+              <input type="text" v-model="formModel.NhaXuatBan" class="block w-full p-2.5 border rounded-lg outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block font-bold text-gray-500 uppercase mb-1">Năm Xuất Bản</label>
+              <input type="number" v-model.number="formModel.NamXuatBan" class="block w-full p-2.5 border rounded-lg outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block font-bold text-gray-500 uppercase mb-1">Giá Bìa (VNĐ) *</label>
+              <input type="number" v-model.number="formModel.GiaBia" class="block w-full p-2.5 border rounded-lg font-mono font-bold text-blue-700 outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block font-bold text-gray-500 uppercase mb-1">Số Tồn Khởi Tạo</label>
+              <input type="number" v-model.number="formModel.SoLuongTon" :disabled="isEditMode" class="block w-full p-2.5 border rounded-lg font-bold outline-none focus:border-blue-500 disabled:bg-gray-100">
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block font-bold text-gray-500 uppercase mb-1">Vị Trí Xếp Kệ Kho *</label>
+              <input type="text" v-model="formModel.ViTriKe" class="block w-full p-2.5 border rounded-lg font-bold outline-none focus:border-blue-500" placeholder="Ví dụ: Khu A - Kệ 01">
+            </div>
           </div>
         </div>
 
         <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
           <button @click="isFormOpen = false" class="px-4 py-2 text-xs font-bold text-gray-700 bg-white border rounded-md hover:bg-gray-50">Hủy</button>
           <button @click="submitBookForm" :disabled="isSubmitting" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400">
-            {{ isSubmitting ? 'Đang ghi sổ...' : 'Lưu danh mục' }}
+            {{ isSubmitting ? 'Đang tải lên...' : 'Lưu danh mục' }}
           </button>
         </div>
       </div>
@@ -183,7 +212,6 @@
           </div>
           <button @click="isImportOpen = false" class="text-emerald-300 hover:text-white text-lg font-bold">&times;</button>
         </div>
-
         <div class="p-5 space-y-4 text-xs" v-if="selectedImportBook">
           <div class="p-3 bg-gray-50 border rounded-lg space-y-1">
             <div class="font-bold text-gray-800 text-sm truncate">{{ selectedImportBook.TenSach }}</div>
@@ -192,9 +220,8 @@
               <span>Số tồn hiện tại: <strong class="text-blue-600 font-bold">{{ selectedImportBook.SoLuongTon }} cuốn</strong></span>
             </div>
           </div>
-
           <div>
-            <label class="block font-bold text-gray-600 uppercase mb-1">Số lượng sách mua bổ sung nhập kho (Cuốn)</label>
+            <label class="block font-bold text-gray-600 uppercase mb-1">Số lượng mua bổ sung (Cuốn)</label>
             <input 
               type="number" 
               v-model.number="importQuantity" 
@@ -203,7 +230,6 @@
             >
           </div>
         </div>
-
         <div class="bg-gray-50 px-5 py-3.5 border-t border-gray-200 flex justify-end space-x-2.5">
           <button @click="isImportOpen = false" class="px-3.5 py-2 text-xs font-bold text-gray-700 bg-white border rounded-md hover:bg-gray-50">Hủy</button>
           <button 
@@ -242,6 +268,7 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
+// 1. Cập nhật Interface: Thêm trường HinhAnh
 interface Book {
   MaSach: string;
   TenSach: string;
@@ -252,6 +279,7 @@ interface Book {
   GiaBia: number;
   SoLuongTon: number;
   ViTriKe: string;
+  HinhAnh?: string; // <-- THÊM DÒNG NÀY
 }
 
 const books = ref<Book[]>([]);
@@ -268,8 +296,12 @@ const selectedBookId = ref('');
 const selectedImportBook = ref<Book | null>(null); 
 const importQuantity = ref(10); 
 
+// 2. Thêm các biến quản lý trạng thái file upload
+const selectedFile = ref<File | null>(null);
+const imagePreview = ref<string | null>(null);
+
 const formModel = ref<Book>({
-  MaSach: '', TenSach: '', TacGia: '', TheLoai: '', NhaXuatBan: '', NamXuatBan: 2026, GiaBia: 0, SoLuongTon: 0, ViTriKe: ''
+  MaSach: '', TenSach: '', TacGia: '', TheLoai: '', NhaXuatBan: '', NamXuatBan: 2026, GiaBia: 0, SoLuongTon: 0, ViTriKe: '', HinhAnh: ''
 });
 
 const toast = ref({ show: false, message: '', type: 'success' as 'success' | 'error' });
@@ -285,7 +317,6 @@ const getAuthHeaders = () => {
   return { Authorization: `Bearer ${JSON.parse(sessionRaw).token}` };
 };
 
-
 const loadBooksList = async () => {
   isLoading.value = true;
   try {
@@ -296,18 +327,33 @@ const loadBooksList = async () => {
   } finally { isLoading.value = false; }
 };
 
+// 3. Xử lý khi người dùng chọn file ảnh từ máy
+const handleFileSelect = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  if (target.files && target.files.length > 0) {
+    selectedFile.value = target.files[0];
+    // Tạo link URL ảo để preview ảnh trực tiếp trên trình duyệt
+    imagePreview.value = URL.createObjectURL(target.files[0]);
+  }
+};
+
 const openAddModal = () => {
   isEditMode.value = false;
-  formModel.value = { MaSach: '', TenSach: '', TacGia: '', TheLoai: '', NhaXuatBan: '', NamXuatBan: 2026, GiaBia: 0, SoLuongTon: 0, ViTriKe: '' };
+  // Reset lại trạng thái file
+  selectedFile.value = null;
+  imagePreview.value = null;
+  formModel.value = { MaSach: '', TenSach: '', TacGia: '', TheLoai: '', NhaXuatBan: '', NamXuatBan: 2026, GiaBia: 0, SoLuongTon: 0, ViTriKe: '', HinhAnh: '' };
   isFormOpen.value = true;
 };
 
 const openEditModal = (book: Book) => {
   isEditMode.value = true;
+  // Reset trạng thái file mới, form load ảnh cũ (nếu có)
+  selectedFile.value = null;
+  imagePreview.value = null; 
   formModel.value = { ...book };
   isFormOpen.value = true;
 };
-
 
 const openImportModal = (book: Book) => {
   selectedImportBook.value = book;
@@ -315,7 +361,7 @@ const openImportModal = (book: Book) => {
   isImportOpen.value = true;
 };
 
-
+// 4. ROMAX LẠI LOGIC GỬI AXIOS DÙNG FORMDATA
 const submitBookForm = async () => {
   if (!formModel.value.MaSach || !formModel.value.TenSach) {
     triggerToast('Vui lòng hoàn thành các trường dữ liệu bắt buộc (*)', 'error');
@@ -324,22 +370,48 @@ const submitBookForm = async () => {
 
   isSubmitting.value = true;
   try {
+    // PHẢI GÓI THÀNH FORMDATA THÌ BÊN KIA MULTER MỚI HỨNG ĐƯỢC
+    const formData = new FormData();
+    formData.append('MaSach', formModel.value.MaSach);
+    formData.append('TenSach', formModel.value.TenSach);
+    formData.append('TacGia', formModel.value.TacGia || '');
+    formData.append('TheLoai', formModel.value.TheLoai || '');
+    formData.append('NhaXuatBan', formModel.value.NhaXuatBan || '');
+    formData.append('NamXuatBan', String(formModel.value.NamXuatBan || 2026));
+    formData.append('GiaBia', String(formModel.value.GiaBia || 0));
+    formData.append('SoLuongTon', String(formModel.value.SoLuongTon || 0));
+    formData.append('ViTriKe', formModel.value.ViTriKe);
+    
+    if (formModel.value.HinhAnh) {
+        formData.append('HinhAnh', formModel.value.HinhAnh); // Trả lại link cũ nếu có
+    }
+    
+    // NẾU CÓ CHỌN FILE TỪ MÁY THÌ APPEND CHÌA KHÓA 'image' LÊN CHO MULTER
+    if (selectedFile.value) {
+      formData.append('image', selectedFile.value);
+    }
+
+    // Gắn thêm Header báo hiệu dữ liệu là form multipart
+    const reqHeaders = { 
+        ...getAuthHeaders(), 
+        'Content-Type': 'multipart/form-data' 
+    };
+
     if (isEditMode.value) {
-      const response = await axios.put(`http://localhost:3000/api/warehouse/books/${formModel.value.MaSach}`, formModel.value, { headers: getAuthHeaders() });
-      console.log(response.data);
+      const response = await axios.put(`http://localhost:3000/api/warehouse/books/${formModel.value.MaSach}`, formData, { headers: reqHeaders });
       triggerToast(response.data.message || 'Đã cập nhật thông tin sách thành công!');
     } else {
-      const response = await axios.post('http://localhost:3000/api/warehouse/books', formModel.value, { headers: getAuthHeaders() });
+      const response = await axios.post('http://localhost:3000/api/warehouse/books', formData, { headers: reqHeaders });
       triggerToast(response.data.message || 'Đã khai báo danh mục sách mới thành công!');
     }
+    
     isFormOpen.value = false;
     await loadBooksList();
   } catch (error: any) {
-    console.log(error.response.data);
+    console.log(error.response?.data);
     triggerToast(error.response?.data?.message || 'Xử lý biểu mẫu sách dính lỗi hệ thống.', 'error');
   } finally { isSubmitting.value = false; }
 };
-
 
 const executeImportAPI = async () => {
   if (!selectedImportBook.value || importQuantity.value <= 0) {
@@ -367,7 +439,6 @@ const triggerDeleteDialog = (maSach: string) => {
   isConfirmOpen.value = true;
 };
 
-
 const executeDeleteAPI = async () => {
   isConfirmOpen.value = false;
   try {
@@ -375,7 +446,6 @@ const executeDeleteAPI = async () => {
     triggerToast(response.data.message || 'Đã gạch tên đầu sách khỏi CSDL kho vật lý.');
     await loadBooksList();
   } catch (error: any) {
-    
     const serverMessage = error.response?.data?.message || 'Không thể thực thi lệnh xóa sách.';
     triggerToast(serverMessage, 'error');
   }

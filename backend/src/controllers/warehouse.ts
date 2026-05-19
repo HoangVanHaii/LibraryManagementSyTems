@@ -19,10 +19,11 @@ const uploadToCloudinary = (fileBuffer: Buffer): Promise<string> => {
 
 export const getAllBooks = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
     try {
-        if ((req as any).user?.role !== 'QuanLyKho') { 
+        if ((req as any).user?.role !== 'QuanLyKho' && (req as any).user?.role !== 'ThuThu') { 
             throw new AppError('Từ chối truy cập: Bạn không có quyền Quản lý kho!', 403);
         }
-        const data = await warehouseService.getBooksInventory();
+        const role = (req as any).user?.role;
+        const data = await warehouseService.getBooksInventory(role);
         return res.status(200).json(data);
     } catch (error) {
         next(error);

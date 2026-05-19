@@ -14,7 +14,8 @@ export const getBooksForReader = async (): Promise<IReaderBook[]> => {
                     NhaXuatBan, 
                     NamXuatBan, 
                     SoLuongTon, 
-                    ViTriKe 
+                    ViTriKe,
+                    HinhAnh
                 FROM v_Sach
             `);
 

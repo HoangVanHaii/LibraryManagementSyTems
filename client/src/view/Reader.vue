@@ -83,8 +83,7 @@
           <thead class="bg-white">
             <tr>
               <th scope="col" class="py-3.5 pl-4 pr-3 font-semibold text-gray-900 sm:pl-6">Mã Phiếu</th>
-              <th scope="col" class="px-3 py-3.5 font-semibold text-gray-900">Tên Sách & Tác Giả</th>
-              <th scope="col" class="px-3 py-3.5 font-semibold text-gray-900 text-center">Ngày Mượn</th>
+              <th scope="col" class="px-3 py-3.5 font-semibold text-gray-900 w-1/3">Thông tin Sách & Bìa</th> <th scope="col" class="px-3 py-3.5 font-semibold text-gray-900 text-center">Ngày Mượn</th>
               <th scope="col" class="px-3 py-3.5 font-semibold text-gray-900 text-center">Hạn Trả</th>
               <th scope="col" class="px-3 py-3.5 font-semibold text-red-900 text-right">Phạt tích lũy</th>
               <th scope="col" class="px-3 py-3.5 font-semibold text-gray-900 text-center pr-6">Tình Trạng</th>
@@ -95,10 +94,21 @@
               <td class="py-4 pl-4 pr-3 font-mono font-bold text-gray-900 whitespace-nowrap sm:pl-6">
                 {{ book.MaPhieu }}
               </td>
+
               <td class="px-3 py-4">
-                <span class="text-gray-900 font-bold block">{{ book.TenSach }}</span>
-                <span class="text-[11px] text-gray-400 font-medium block">TG: {{ book.TacGia || 'Chưa cập nhật' }}</span>
+                <div class="flex items-center space-x-3">
+                  <img 
+                    :src="book.HinhAnh || 'https://via.placeholder.com/150x200?text=No+Cover'" 
+                    class="w-10 h-14 object-cover rounded shadow-sm border border-gray-200 bg-gray-100 flex-shrink-0" 
+                    alt="Bìa sách"
+                  >
+                  <div class="truncate">
+                    <span class="text-gray-900 font-bold block truncate" :title="book.TenSach">{{ book.TenSach }}</span>
+                    <span class="text-[11px] text-gray-400 font-medium block">TG: {{ book.TacGia || 'Chưa cập nhật' }}</span>
+                  </div>
+                </div>
               </td>
+
               <td class="px-3 py-4 text-gray-500 whitespace-nowrap text-center">
                 {{ formatDate(book.NgayMuon) }}
               </td>
@@ -130,6 +140,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
+// BỔ SUNG TRƯỜNG HINHANH ĐỂ TYPESCRIPT KHÔNG KÊU LỖI
 interface BorrowHistory {
   MaPhieu: string;
   MaSach: string;
@@ -140,6 +151,7 @@ interface BorrowHistory {
   NgayTraThucTe: string | null;
   TinhTrangKhiTra: string | null;
   TienPhatKyNay: number; 
+  HinhAnh?: string; // <=== Thêm mới
 }
 
 const borrowedHistory = ref<BorrowHistory[]>([]);

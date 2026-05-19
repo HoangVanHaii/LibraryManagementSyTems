@@ -61,8 +61,7 @@
           <thead class="bg-white text-gray-900 border-b font-semibold">
             <tr>
               <th scope="col" class="py-3 px-4 pl-6">Mã Sách</th>
-              <th scope="col" class="py-3 px-4">Thông tin sách</th>
-              <th scope="col" class="py-3 px-4">Thể loại</th>
+              <th scope="col" class="py-3 px-4 w-1/3">Thông tin sách & Hình Bìa</th> <th scope="col" class="py-3 px-4">Thể loại</th>
               <th scope="col" class="py-3 px-4 text-center">Vị trí kệ</th>
               <th scope="col" class="py-3 px-4 text-center">Số lượng tồn</th>
               <th scope="col" class="py-3 px-4 text-center">Mức độ nguy cấp</th>
@@ -72,9 +71,18 @@
           <tbody class="divide-y divide-gray-200 bg-white font-medium text-gray-600">
             <tr v-for="item in alertsList" :key="item.MaSach" class="hover:bg-red-50/10 transition-colors">
               <td class="py-4 px-4 pl-6 font-mono font-bold text-gray-900">{{ item.MaSach }}</td>
+              
               <td class="py-4 px-4">
-                <div class="font-bold text-gray-900">{{ item.TenSach }}</div>
+                <div class="flex items-center space-x-3">
+                  <img 
+                    :src="item.HinhAnh || 'https://via.placeholder.com/150x200?text=No+Cover'" 
+                    class="w-10 h-14 object-cover rounded shadow-sm border border-gray-200 bg-gray-100 flex-shrink-0" 
+                    alt="Bìa sách"
+                  >
+                  <div class="font-bold text-gray-900 truncate" :title="item.TenSach">{{ item.TenSach }}</div>
+                </div>
               </td>
+
               <td class="py-4 px-4 text-gray-500">{{ item.TheLoai }}</td>
               <td class="py-4 px-4 text-center font-semibold text-slate-700">{{ item.ViTriKe || 'Chưa xếp kệ' }}</td>
               <td class="py-4 px-4 text-center font-mono font-black text-sm" :class="item.SoLuongTon === 0 ? 'text-red-600' : 'text-amber-600'">
@@ -114,12 +122,15 @@
         </div>
 
         <div class="p-5 space-y-4">
-          <div class="bg-red-50/50 p-3 rounded-lg border border-red-100 text-xs">
-            <span class="text-[10px] text-red-500 font-bold uppercase tracking-wider block">Sách chạm ngưỡng báo động</span>
-            <p class="font-bold text-gray-900 mt-0.5 truncate">{{ selectedBook.TenSach }}</p>
-            <p class="text-[11px] text-gray-500 font-mono mt-0.5">
-              Mã sách: {{ selectedBook.MaSach }} | Tồn kho hiện tại: <span class="font-black text-red-600">{{ selectedBook.SoLuongTon }}</span> cuốn
-            </p>
+          <div class="bg-red-50/50 p-3 rounded-lg border border-red-100 flex items-center space-x-3">
+            <img :src="selectedBook.HinhAnh || 'https://via.placeholder.com/150x200?text=No+Cover'" class="w-12 h-16 object-cover rounded border border-red-200 shadow-sm bg-gray-200 flex-shrink-0" alt="Bìa sách">
+            <div class="flex-1 min-w-0">
+              <span class="text-[10px] text-red-500 font-bold uppercase tracking-wider block mb-0.5">Sách chạm ngưỡng báo động</span>
+              <p class="font-bold text-gray-900 text-xs truncate" :title="selectedBook.TenSach">{{ selectedBook.TenSach }}</p>
+              <p class="text-[11px] text-gray-500 font-mono mt-0.5">
+                Mã: {{ selectedBook.MaSach }} | Tồn: <span class="font-black text-red-600">{{ selectedBook.SoLuongTon }}</span>
+              </p>
+            </div>
           </div>
 
           <div class="space-y-1.5">
@@ -160,6 +171,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
+// BỔ SUNG TRƯỜNG HINHANH VÀO INTERFACE
 interface LowStockItem {
   MaSach: string;
   TenSach: string;
@@ -167,6 +179,7 @@ interface LowStockItem {
   SoLuongTon: number;
   ViTriKe: string | null;
   MucDoNguyCap: string;
+  HinhAnh?: string; // <-- Bổ sung dòng này
 }
 
 const alertsList = ref<LowStockItem[]>([]);
